@@ -1,0 +1,718 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { BrainCircuit, Send, RefreshCw, Copy, Check, BookOpen, Lightbulb, HelpCircle, Layers, Maximize2, Minimize2, AlertCircle, Clock, ShieldAlert } from 'lucide-react';
+import { NURSING_UNITS } from '@/data/quizQuestions';
+import { sanitizeInput } from '@/lib/security';
+import { parseRateLimitResponse } from '@/lib/rateLimit';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+}
+
+interface StudyAssistantProps {
+  mode?: 'compact' | 'full';
+  initialUnit?: string;
+  onExpand?: () => void;
+}
+
+const PRESET_TOPICS = [
+  { label: '👶 Toddler Milestones', query: 'What are key developmental milestones for toddlers in NCK Licensure Pediatrics?' },
+  { label: '💊 High-Alert Meds (ISMP)', query: 'What are the top high-alert medications in nursing and priority safety checks?' },
+  { label: '🫀 ABCs vs Maslow', query: 'Explain how to prioritize NCK Licensure questions using ABCs and Maslow Hierarchy.' },
+  { label: '🧪 Essential Lab Values', query: 'Give me a quick cheat sheet for Potassium, Sodium, Calcium, and Digoxin therapeutic levels.' },
+  { label: '🩸 Blood Transfusion Protocol', query: 'What are the essential priority nursing actions during a suspected blood transfusion reaction?' },
+];
+
+export function StudyAssistant({ mode = 'compact', initialUnit = 'All', onExpand }: StudyAssistantProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'init-1',
+      role: 'assistant',
+      text: "Hello! I am your **NCK Registered Nurse (RN) FQE Clinical Study Assistant**. Ask me any nursing question, prompt me for a memory mnemonic, or ask for flashcards on any topic!",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState(initialUnit);
+  const [assistantMode, setAssistantMode] = useState<'general' | 'mnemonic' | 'flashcards' | 'rationale'>('general');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [rateLimitCooldown, setRateLimitCooldown] = useState<number>(0);
+  const [backendStatus, setBackendStatus] = useState<{
+    status: 'checking' | 'ready' | 'unconfigured' | 'offline';
+    keyConfigured?: boolean;
+    probeMessage?: string;
+  }>({ status: 'checking' });
+  const [isTestingProbe, setIsTestingProbe] = useState(false);
+  
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const checkBackendStatus = async (probe = false, retryCount = 0) => {
+    if (probe) setIsTestingProbe(true);
+    try {
+      const res = await fetch(`/api/ai-status?probe=${probe ? 'true' : 'false'}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.keyConfigured && data.probeSuccess !== false) {
+          setBackendStatus({ status: 'ready', keyConfigured: true, probeMessage: data.probeMessage });
+          if (probe) {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `probe-${Date.now()}`,
+                role: 'assistant',
+                text: `✅ **AI Connection Verified**: Successfully connected to Gemini 3.1 Flash-Lite on the server. Live clinical reasoning is online and ready!`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              }
+            ]);
+          }
+          return;
+        } else if (!data.keyConfigured) {
+          setBackendStatus({ status: 'unconfigured', keyConfigured: false, probeMessage: 'GEMINI_API_KEY environment variable is not configured.' });
+          if (probe) {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `probe-${Date.now()}`,
+                role: 'assistant',
+                text: `⚠️ **AI Test Result: API Key Unconfigured**\n\nThe server is running, but \`GEMINI_API_KEY\` is missing in your deployment environment.\n\n**To configure:**\n1. In Google AI Studio, open **Settings** (gear icon) > **Secrets**.\n2. Add \`GEMINI_API_KEY\`.\n3. Click **Deploy** in the top bar to update the container.`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              }
+            ]);
+          }
+          return;
+        } else {
+          const failMsg = data.probeMessage || 'Model probe failed';
+          setBackendStatus({ status: 'offline', probeMessage: failMsg });
+          if (probe) {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `probe-${Date.now()}`,
+                role: 'assistant',
+                text: `❌ **AI Test Result: Connection Failed**\n\n**Error details:** \`${failMsg}\`\n\n*If using a Google Cloud API Key, verify that the "Generative Language API" is enabled in your Google Cloud project and the key has no restrictive service blocks.*`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              }
+            ]);
+          }
+          return;
+        }
+      } else {
+        // Cold start or server starting: automatically retry up to 2 times
+        if (retryCount < 2 && !probe) {
+          setTimeout(() => {
+            checkBackendStatus(false, retryCount + 1);
+          }, 2500);
+          return;
+        }
+        const failMsg = `HTTP ${res.status} from /api/ai-status`;
+        setBackendStatus({ status: 'offline', probeMessage: failMsg });
+        if (probe) {
+          setMessages(prev => [
+            ...prev,
+            {
+              id: `probe-${Date.now()}`,
+              role: 'assistant',
+              text: `❌ **AI Test Result: HTTP ${res.status}**\n\nCould not reach \`/api/ai-status\`. If this site is deployed on a static hosting provider (Vercel/Netlify), full-stack Node API routes require Google Cloud Run.`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
+        }
+      }
+    } catch (e: any) {
+      // Network failure or cold boot: automatically retry up to 2 times
+      if (retryCount < 2 && !probe) {
+        setTimeout(() => {
+          checkBackendStatus(false, retryCount + 1);
+        }, 2500);
+        return;
+      }
+      const failMsg = e?.message || 'Cannot reach API';
+      setBackendStatus({ status: 'offline', probeMessage: failMsg });
+      if (probe) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `probe-${Date.now()}`,
+            role: 'assistant',
+            text: `❌ **AI Test Result: Network Error**\n\n\`${failMsg}\`. Please ensure the server container is running and redeployed.`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      }
+    } finally {
+      if (probe) setIsTestingProbe(false);
+    }
+  };
+
+  useEffect(() => {
+    checkBackendStatus();
+  }, []);
+
+  // Active Rate Limit Countdown Timer
+  useEffect(() => {
+    if (rateLimitCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setRateLimitCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rateLimitCooldown]);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const generateFallbackAIResponse = async (prompt: string, unit: string, mode: string): Promise<string> => {
+    // High-Yield Saunders NCK Licensure Clinical Mentor Knowledge Base Fallback
+    const queryLower = prompt.toLowerCase();
+
+    if (queryLower.includes('toddler') || queryLower.includes('milestone')) {
+      return `### 👶 NCK Licensure Pediatrics: Key Toddler Developmental Milestones (Ages 1–3 Years)
+
+**1. Motor Development:**
+* **Gross Motor:** Walks without support (15 months), runs & climbs stairs (18–24 months), jumps with both feet & rides a tricycle (3 years).
+* **Fine Motor:** Builds a 6-block tower (24 months), uses spoon without spilling (18 months), turns single book pages (24 months).
+
+**2. Psychosocial & Cognitive (Erikson & Piaget):**
+* **Erikson Stage:** **Autonomy vs. Shame & Doubt**. Toddlers seek independence (negativism - saying *"No!"*).
+* **Play Type:** **Parallel Play** (plays alongside peers without active interaction).
+* **Ritualism:** Needs routine to feel secure (same cup, same bedtime ritual).
+
+**3. Language Development:**
+* **18 Months:** 10–20 words.
+* **24 Months:** 2–3 word phrases (*"Want milk"*, *"Go bye-bye"*), ~300 words vocabulary.
+
+**4. Safety & Priority Nursing Interventions:**
+* **Poisoning & Aspiration:** Top risk due to hand-to-mouth exploration. Store medications in childproof locked cabinets.
+* **Toilet Training:** Readies around 18–24 months (sphincter control & staying dry for 2 hours).
+
+---
+💡 **NCK Licensure Board Exam Tip:** **Parallel play** and **ritualism** are classic board exam choices for toddler hospitalized nursing care!`;
+    }
+
+    if (queryLower.includes('high-alert') || queryLower.includes('ismp') || queryLower.includes('medication') || queryLower.includes('drug')) {
+      return `### 💊 NCK Licensure Pharmacology: ISMP High-Alert Medications & Safety Protocols
+
+**Key High-Alert Medications (PINCH Acronym):**
+* **P - Potassium & Concentrated Electrolytes:** Never give IV push! Always dilute and administer on an infusion pump.
+* **I - Insulin:** Requires independent double-check by two RNs before administration.
+* **N - Narcotics / Opioids:** Monitor respiratory rate (hold if <12/min) and keep **Naloxone (Narcan)** at bedside.
+* **C - Chemotherapy Agents:** Strict cytotoxic precautions & double-checking dosage calculations.
+* **H - Heparin & Anticoagulants:** Monitor aPTT (Heparin target 1.5–2.5x control) or INR (Warfarin target 2.0–3.0). Protamine Sulfate is Heparin reversal agent.
+
+---
+💡 **NCK Licensure Safety Pearl:** Always verify patient identity with **2 identifiers** and check rights of med administration before giving any high-alert drug!`;
+    }
+
+    if (queryLower.includes('abc') || queryLower.includes('maslow') || queryLower.includes('priorit')) {
+      return `### 🫀 NCK Licensure Priority Framework: ABCs & Maslow's Hierarchy
+
+**1. ABC Framework (Airway, Breathing, Circulation):**
+1. **Airway:** Stridor, choking, anaphylaxis, obstructed airway (Always Priority #1).
+2. **Breathing:** Asthma attack, pneumothorax, severe hypoxia (SpO2 <90%).
+3. **Circulation:** Severe bleeding, shock, absent peripheral pulses, cardiac arrest.
+
+**2. Maslow's Hierarchy of Needs:**
+* **Physiological Needs First:** Oxygen, fluid balance, nutrition, elimination, body temperature.
+* **Safety & Security Second:** Fall precautions, infection control, suicidal ideation.
+* **Psychosocial Third:** Anxiety, self-esteem, coping mechanisms.
+
+---
+💡 **NCK Licensure Rule of Thumb:** Recognize **Unstable vs. Stable** clients (Unexpected acute changes beat expected chronic symptoms!).`;
+    }
+
+    if (queryLower.includes('lab') || queryLower.includes('value') || queryLower.includes('potassium') || queryLower.includes('sodium') || queryLower.includes('digoxin')) {
+      return `### 🧪 NCK Licensure Key Laboratory Reference Values Cheat Sheet
+
+* **Potassium (K+):** **3.5 – 5.0 mEq/L** *(Critical: <3.5 arrhythmia, >5.0 tall peaked T-waves)*
+* **Sodium (Na+):** **135 – 145 mEq/L** *(Hyponatremia causes confusion & seizure risk)*
+* **Calcium (Ca2+):** **9.0 – 10.5 mg/dL** *(Hypocalcemia: Trousseau & Chvostek signs)*
+* **Digoxin Level:** **0.5 – 2.0 ng/mL** *(Toxicity: Halo vision, nausea; check apical pulse for 1 min)*
+* **WBC:** **5,000 – 10,000 /mm³** *(Neutropenic precautions if ANC <1,000)*
+* **BUN / Creatinine:** BUN **10–20 mg/dL**, Creatinine **0.6–1.2 mg/dL**
+
+---
+💡 **NCK Licensure Pearl:** Always assess the patient first when lab values are outside normal limits!`;
+    }
+
+    return `### 🩺 NCKPrep AI Clinical Study Note (${unit !== 'All' ? unit : 'NCK Registered Nurse (RN) FQE Core'})
+
+**Clinical Breakdown for:** *"${prompt}"*
+
+1. **Assessment & Priority Nursing Care:**
+   * Collect focused clinical data (vital signs, physical assessment, lab trends) before executing interventions unless life-threatening resuscitation is warranted.
+   * Apply priority frameworks: **ABC** (Airway, Breathing, Circulation), **ADPIE**, and **Maslow's Hierarchy of Needs**.
+
+2. **Patient Safety & NCK Licensure Pearls:**
+   * Verify patient identity using 2 unique identifiers.
+   * Highlight patient education, medication side-effect monitoring, and timely physician notification for deteriorating status.
+
+---
+💡 *Tip:* Ask for specific topics like **toddler milestones**, **high-alert meds**, **ABCs**, or **lab values** for specialized Saunders study cards!`;
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    if (rateLimitCooldown > 0) {
+      setErrorText(`Rate limit active. Please wait ${rateLimitCooldown}s before asking another question.`);
+      return;
+    }
+
+    const rawText = textToSend || inputMessage;
+    const cleanPrompt = sanitizeInput(rawText);
+
+    if (!cleanPrompt) return;
+
+    setErrorText(null);
+    const userMsgId = `usr-${Date.now()}`;
+    const userMessage: Message = {
+      id: userMsgId,
+      role: 'user',
+      text: cleanPrompt,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    if (!textToSend) setInputMessage('');
+    setIsLoading(true);
+
+    let replyText = '';
+
+    try {
+      // Build history payload for server
+      const historyPayload = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        text: m.text
+      }));
+
+      const res = await fetch('/api/study-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: cleanPrompt,
+          history: historyPayload,
+          unit: selectedUnit,
+          mode: assistantMode
+        })
+      });
+
+      if (res.status === 429) {
+        const rateInfo = await parseRateLimitResponse(res);
+        setRateLimitCooldown(rateInfo.retryAfterSeconds || 60);
+        setErrorText(rateInfo.message || `Rate limit reached (25 req / 10 min). Next request available in ${rateInfo.retryAfterSeconds}s.`);
+        replyText = `⚠️ **AI Rate Limit Quota Reached**: You have reached the maximum allowed AI tutor questions for this 10-minute window (25 requests per 10 minutes). Please wait **${rateInfo.retryAfterSeconds} seconds** for the rate limit token bucket to refresh.`;
+      } else if (res.ok) {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          replyText = data.reply || '';
+        }
+      } else {
+        // Non-200 HTTP response from backend
+        let serverErrorDetail = '';
+        try {
+          const errData = await res.json();
+          serverErrorDetail = errData.error || errData.message || '';
+        } catch {
+          // not JSON
+        }
+
+        if (res.status === 404) {
+          console.warn('/api/study-assistant returned 404. Checking fallback.');
+          const fallback = await generateFallbackAIResponse(cleanPrompt, selectedUnit, assistantMode);
+          replyText = `⚠️ **Backend Service Notice (HTTP 404)**: The \`/api/study-assistant\` endpoint was not found on this domain.\n\n*If you are viewing this app on a static hosting provider (e.g., Vercel, Netlify, or Firebase Hosting), full-stack Express API endpoints require deployment on Google Cloud Run.*\n\n---\n${fallback}`;
+        } else {
+          console.warn(`Server returned ${res.status}:`, serverErrorDetail);
+          const fallback = await generateFallbackAIResponse(cleanPrompt, selectedUnit, assistantMode);
+          replyText = `⚠️ **Server Status (HTTP ${res.status})**: ${serverErrorDetail || 'AI generation encountered a temporary server error.'}\n\n*Please verify \`GEMINI_API_KEY\` in your project settings (Settings > Secrets) and ensure your container is redeployed.*\n\n---\n${fallback}`;
+        }
+      }
+
+      // If server returned 200 but empty text, use fallback AI
+      if (!replyText && res.status !== 429) {
+        console.warn(`API server returned empty reply. Using fallback NCK Licensure AI mentor.`);
+        replyText = await generateFallbackAIResponse(cleanPrompt, selectedUnit, assistantMode);
+      }
+    } catch (err: any) {
+      console.warn('Network error reaching /api/study-assistant:', err);
+      const fallback = await generateFallbackAIResponse(cleanPrompt, selectedUnit, assistantMode);
+      replyText = `⚠️ **Network Connection Notice**: Could not connect to \`/api/study-assistant\` (${err?.message || 'Network request failed'}).\n\n*If this site was just deployed, the container may still be starting up or the domain may be proxying through an external CDN. Retrying in a few moments often resolves this.*\n\n---\n${fallback}`;
+    } finally {
+      const assistantMsg: Message = {
+        id: `ast-${Date.now()}`,
+        role: 'assistant',
+        text: replyText || "I am currently analyzing your question. Please try asking again.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, assistantMsg]);
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleCopyText = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleReset = () => {
+    setMessages([
+      {
+        id: `init-${Date.now()}`,
+        role: 'assistant',
+        text: "Session reset! What topic or NCK Licensure clinical concept would you like to explore next?",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+    setErrorText(null);
+  };
+
+  // Simple Markdown text formatter helper
+  const renderFormattedText = (content: string) => {
+    // Split into paragraphs or line blocks
+    const lines = content.split('\n');
+    return lines.map((line, idx) => {
+      // Bold syntax **text**
+      const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      
+      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+        return (
+          <li 
+            key={idx} 
+            className="ml-4 list-disc my-1 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: formattedLine.replace(/^[-*]\s+/, '') }}
+          />
+        );
+      }
+      if (line.trim().startsWith('**Q:**') || line.trim().startsWith('Q:')) {
+        return (
+          <div key={idx} className="bg-slate-800/80 p-2.5 rounded-md my-2 border-l-4 border-amber-400 font-medium">
+            <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
+          </div>
+        );
+      }
+      if (line.trim().startsWith('**A:**') || line.trim().startsWith('A:')) {
+        return (
+          <div key={idx} className="bg-slate-800/50 p-2.5 rounded-md mb-3 border-l-4 border-emerald-400 text-slate-200">
+            <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
+          </div>
+        );
+      }
+      if (line.trim() === '') {
+        return <div key={idx} className="h-2" />;
+      }
+      return (
+        <p key={idx} className="my-1 leading-relaxed" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+      );
+    });
+  };
+
+  return (
+    <div className={`bg-slate-900 text-white rounded-xl flex flex-col border border-slate-800 shadow-xl overflow-hidden ${
+      mode === 'full' ? 'h-[750px] w-full' : 'min-h-[380px] h-full'
+    }`}>
+      {/* Header */}
+      <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <BrainCircuit className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-white">NCKPrep AI Assistant</h3>
+              {backendStatus.status === 'ready' && (
+                <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Online (Gemini 3.1)
+                </span>
+              )}
+              {backendStatus.status === 'unconfigured' && (
+                <span className="flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">
+                  <AlertCircle className="w-3 h-3" />
+                  API Key Needed
+                </span>
+              )}
+              {backendStatus.status === 'offline' && (
+                <span className="flex items-center gap-1 text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full font-semibold">
+                  <AlertCircle className="w-3 h-3" />
+                  Backend Offline
+                </span>
+              )}
+              {backendStatus.status === 'checking' && (
+                <span className="flex items-center gap-1 text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20 px-2 py-0.5 rounded-full font-semibold">
+                  <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                  Checking API...
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-400">NCK Licensure Clinical Judgment Tutor</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => checkBackendStatus(true)} 
+            disabled={isTestingProbe}
+            title="Test AI API Connection"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-xs flex items-center gap-1"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isTestingProbe ? 'animate-spin text-emerald-400' : ''}`} />
+            <span className="hidden sm:inline">{isTestingProbe ? 'Testing...' : 'Test AI'}</span>
+          </button>
+
+          <button 
+            onClick={handleReset} 
+            title="Reset Chat Session"
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-xs flex items-center gap-1"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reset</span>
+          </button>
+
+          {mode === 'compact' && onExpand && (
+            <button 
+              onClick={onExpand}
+              title="Expand Study Assistant"
+              className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Backend Status Advisory Banner (if unconfigured or offline) */}
+      {backendStatus.status === 'unconfigured' && (
+        <div className="bg-amber-950/70 border-b border-amber-600/40 px-3 py-2 text-xs text-amber-200 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>GEMINI_API_KEY</strong> is missing from this deployed server. Add it in <strong>Settings &gt; Secrets</strong> in Google AI Studio and click <strong>Deploy</strong>.
+            </span>
+          </div>
+          <button
+            onClick={() => checkBackendStatus(true)}
+            disabled={isTestingProbe}
+            className="text-[11px] bg-amber-600 hover:bg-amber-500 text-white font-medium px-2 py-1 rounded transition-colors shrink-0"
+          >
+            {isTestingProbe ? 'Checking...' : 'Recheck'}
+          </button>
+        </div>
+      )}
+
+      {backendStatus.status === 'offline' && (
+        <div className="bg-slate-900/90 border-b border-indigo-500/30 px-3 py-2 text-xs text-slate-300 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-indigo-400 shrink-0" />
+            <span>
+              {backendStatus.probeMessage?.includes('blocked') || backendStatus.probeMessage?.includes('API_KEY') ? (
+                <>Gemini key status: <code>{backendStatus.probeMessage}</code>. Verify GEMINI_API_KEY in Settings &gt; Secrets.</>
+              ) : (
+                <>AI Server: {backendStatus.probeMessage || 'Reconnecting...'}. Offline Saunders NCK Licensure Clinical Guide is active.</>
+              )}
+            </span>
+          </div>
+          <button
+            onClick={() => checkBackendStatus(true)}
+            disabled={isTestingProbe}
+            className="text-[11px] bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-2 py-1 rounded transition-colors shrink-0"
+          >
+            {isTestingProbe ? 'Checking...' : 'Check Connection'}
+          </button>
+        </div>
+      )}
+
+      {/* Mode & Domain Controls Bar */}
+      <div className="bg-slate-900/90 px-3 py-2 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
+        {/* Mode Selectors */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          {[
+            { id: 'general', label: 'Clinical QA', icon: BrainCircuit },
+            { id: 'mnemonic', label: 'Mnemonics', icon: Lightbulb },
+            { id: 'flashcards', label: 'Flashcards', icon: BookOpen },
+            { id: 'rationale', label: 'Rationale', icon: HelpCircle },
+          ].map((m) => {
+            const Icon = m.icon;
+            const isActive = assistantMode === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setAssistantMode(m.id as any)}
+                className={`px-2.5 py-1 rounded-md font-medium text-[11px] flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                  isActive 
+                    ? 'bg-blue-600 text-white shadow-xs' 
+                    : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+              >
+                <Icon className="w-3 h-3" />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Unit Selector */}
+        <div className="flex items-center gap-1 text-[11px]">
+          <span className="text-slate-500 font-medium hidden sm:inline">Focus:</span>
+          <select 
+            value={selectedUnit}
+            onChange={(e) => setSelectedUnit(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 text-[11px] outline-none focus:border-blue-500"
+          >
+            <option value="All">All Domains</option>
+            {NURSING_UNITS.map(u => (
+              <option key={u} value={u}>{u}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Messages Scroll Area */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
+        {messages.map((msg) => (
+          <div 
+            key={msg.id} 
+            className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+          >
+            <div className={`max-w-[88%] rounded-xl p-3.5 ${
+              msg.role === 'user' 
+                ? 'bg-blue-600 text-white rounded-br-xs shadow-md' 
+                : 'bg-slate-800/90 border border-slate-700/80 text-slate-100 rounded-bl-xs shadow-sm'
+            }`}>
+              {msg.role === 'assistant' && (
+                <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-700/60 text-[10px] text-slate-400">
+                  <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                    <BrainCircuit className="w-3 h-3" /> NCKPrep AI
+                  </span>
+                  <button 
+                    onClick={() => handleCopyText(msg.id, msg.text)}
+                    className="hover:text-white transition-colors flex items-center gap-0.5"
+                    title="Copy response"
+                  >
+                    {copiedId === msg.id ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+              
+              <div className="space-y-1">
+                {renderFormattedText(msg.text)}
+              </div>
+
+              <div className={`text-[9px] mt-2 text-right ${msg.role === 'user' ? 'text-blue-200' : 'text-slate-500'}`}>
+                {msg.timestamp}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex items-start gap-2">
+            <div className="bg-slate-800/90 border border-slate-700/80 text-slate-300 p-3 rounded-xl rounded-bl-xs text-xs flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin" />
+              <span className="italic text-slate-400">Retrieving clinical nursing insights...</span>
+            </div>
+          </div>
+        )}
+
+        {rateLimitCooldown > 0 && (
+          <div className="bg-amber-950/40 border border-amber-600/50 text-amber-300 p-3 rounded-lg text-xs flex items-center justify-between gap-2 animate-pulse">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+              <span><strong>Rate Limit Active:</strong> 25 questions / 10 min window reached.</span>
+            </div>
+            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 font-mono font-bold rounded text-[11px] shrink-0 flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {rateLimitCooldown}s
+            </span>
+          </div>
+        )}
+
+        {errorText && !rateLimitCooldown && (
+          <div className="bg-rose-950/40 border border-rose-800/60 text-rose-300 p-3 rounded-lg text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{errorText}</span>
+          </div>
+        )}
+
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Suggested Topics Presets (compact row above input) */}
+      {messages.length < 4 && !isLoading && (
+        <div className="px-3 py-1.5 bg-slate-950/60 border-t border-slate-800/80 overflow-x-auto flex gap-1.5 scrollbar-none">
+          <span className="text-[10px] font-semibold text-slate-500 self-center shrink-0">Quick Ask:</span>
+          {PRESET_TOPICS.map((preset, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSendMessage(preset.query)}
+              className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-full whitespace-nowrap transition-colors border border-slate-700"
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Input Form */}
+      <div className="p-3 bg-slate-950 border-t border-slate-800 shrink-0">
+        <div className="relative flex items-center">
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              rateLimitCooldown > 0 ? `Rate limit cooldown active (${rateLimitCooldown}s remaining)...` :
+              assistantMode === 'mnemonic' ? "Topic for mnemonic (e.g. Digoxin toxicity symptoms)..." :
+              assistantMode === 'flashcards' ? "Flashcard subject (e.g. Pediatric vital signs)..." :
+              assistantMode === 'rationale' ? "Paste question stem or topic for rationale..." :
+              "Ask NCKPrep AI a nursing question..."
+            }
+            disabled={isLoading || rateLimitCooldown > 0}
+            className="w-full bg-slate-900 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-lg p-3 pr-10 text-xs text-white placeholder:text-slate-500 disabled:opacity-50"
+          />
+          <button
+            onClick={() => handleSendMessage()}
+            disabled={isLoading || !inputMessage.trim() || rateLimitCooldown > 0}
+            className="absolute right-2 p-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-md transition-colors flex items-center gap-1"
+          >
+            {rateLimitCooldown > 0 ? (
+              <span className="text-[10px] font-mono font-bold px-1">{rateLimitCooldown}s</span>
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

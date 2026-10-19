@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isUserDocOwner(resourceData) {
+      return isSignedIn() && (
+        resourceData.userId == request.auth.uid || 
+        resourceData.user == request.auth.token.email
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'wangechigodfrey77@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isStaff() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'staff')
+      );
+    }
+
+    // User profiles & subcollections (favorites, history, etc.)
+    match /users/{userId} {
+      allow read, write: if true;
+      match /{allSubcollections=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // Exams & Questions repository (Public read & write for exam management and practice)
+    match /exams/{examId} {
+      allow read, write: if true;
+    }
+
+    match /questions/{questionId} {
+      allow read, write: if true;
+    }
+
+    // User-specific exam history logging
+    match /examHistory/{historyId} {
+      allow read, write: if true;
+    }
+
+    // User-specific favorites & bookmarks
+    match /Favorites/{favoriteId} {
+      allow read, write: if true;
+    }
+
+    match /favorites/{favoriteId} {
+      allow read, write: if true;
+    }
+
+    // Payment transactions
+    match /payments/{paymentId} {
+      allow read, write: if true;
+    }
+
+    // System & User Notifications
+    match /notifications/{notificationId} {
+      allow read, write: if true;
+    }
+
+    // Badge Gamification Configurations
+    match /badgeConfigs/{badgeId} {
+      allow read, write: if true;
+    }
+
+    // System Settings (Payment gateways, general configurations)
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // Exam taxonomy, modes, and subject categories
+    match /exam_modes/{modeId} {
+      allow read, write: if true;
+    }
+
+    match /categories/{categoryId} {
+      allow read, write: if true;
+    }
+    
+    // Clinical Bookshelf Library (Books, Downloadable PDFs, and PowerPoint Presentations)
+    match /library_resources/{resourceId} {
+      allow read, write: if true;
+    }
+
+    // Default fallback deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

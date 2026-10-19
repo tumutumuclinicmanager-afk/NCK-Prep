@@ -1,0 +1,171 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Stethoscope, Eye, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { auth, db, createUserWithEmailAndPassword, updateProfile } from '@/lib/firebase';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { sanitizeInput } from '@/lib/security';
+
+export default function Register() {
+  const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [exam, setExam] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError('');
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      const userEmail = email.trim().toLowerCase();
+      let role = 'Student';
+      let userRole = 'student';
+      
+      if (userEmail === 'admin@nckprep.com' || userEmail === 'wangechigodfrey77@gmail.com') {
+        role = 'Admin';
+        userRole = 'admin';
+      }
+      
+      // Set up 14-day free trial dates
+      const now = new Date();
+      const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
+      const trialStartDate = now.toISOString();
+      const trialExpiresAt = new Date(now.getTime() + trialDurationMs).toISOString();
+
+      // Save profile to Firestore (using setDoc with user.uid to align with rules)
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        userId: userCredential.user.uid,
+        name: sanitizeInput(name),
+        email: userEmail,
+        role: role,
+        status: 'Active',
+        subscriptionPlan: 'free',
+        trialStartDate: trialStartDate,
+        trialExpiresAt: trialExpiresAt,
+        createdAt: trialStartDate,
+        added: new Date().toISOString().split('T')[0],
+        targetExam: exam
+      });
+      
+      localStorage.setItem('userRole', userRole);
+      localStorage.setItem('nckprep_last_activity', Date.now().toString());
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else if (userRole === 'staff') {
+        navigate('/staff');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to register');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-slate-50">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div className="p-8 pb-6 border-b border-slate-100 text-center">
+          <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white mx-auto mb-4">
+            <Stethoscope className="w-6 h-6" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Student Account Sign Up</h2>
+          <p className="text-slate-500 mt-2 text-sm">Join NCK Prep and start mastering your nursing exams.</p>
+        </div>
+
+        <div className="p-8">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-xs font-medium text-center">
+            <strong>Student Account Registration</strong><br />
+            Lecturer & Staff accounts are created directly by system administrators.
+          </div>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Full Name</label>
+              <input 
+                type="text" 
+                placeholder="Jane Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Email Address</label>
+              <input 
+                type="email" 
+                placeholder="jane@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Exam</label>
+              <select 
+                value={exam}
+                onChange={(e) => setExam(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm appearance-none"
+              >
+                <option value="">Select an exam</option>
+                <option value="nclex-rn">NCK Registered Nurse (RN) FQE</option>
+                <option value="nclex-pn">NCK Community Health Nurse</option>
+                <option value="hesi-a2">HESI A2</option>
+                <option value="teas">TEAS</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 text-slate-600" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            <Button type="submit" disabled={loading} className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-sm mt-4 shadow-md shadow-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed">
+              {loading ? 'Creating...' : 'Create Account'}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm text-slate-500 mt-8">
+            Already have an account? <Link to="/login" className="text-emerald-600 font-bold hover:underline">Sign In</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

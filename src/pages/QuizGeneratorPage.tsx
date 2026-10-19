@@ -1,0 +1,1160 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { 
+  BrainCircuit, Play, Clock, CheckCircle, HelpCircle, 
+  Award, ArrowRight, RotateCcw, Filter, ChevronUp, 
+  ChevronDown, ChevronLeft, ChevronRight, Layers, AlertCircle, Check, X, BookOpen, GripVertical, Calculator, Bookmark
+} from 'lucide-react';
+import { QuestionData } from '@/types';
+import { ALL_QUIZ_QUESTIONS, NURSING_UNITS, NursingUnit, ALL_EXAM_TYPES, normalizeExamCategory } from '@/data/quizQuestions';
+import { collection, addDoc, getDocs, query } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTrialCountdown } from '@/lib/trialManager';
+import { TrialExpiredExamLock } from '@/components/TrialExpiredExamLock';
+
+interface QuizGeneratorProps {
+  embeddedModal?: boolean;
+  onCloseModal?: () => void;
+  initialUnit?: string;
+  initialQuestionCount?: number;
+}
+
+export default function QuizGeneratorPage({
+  embeddedModal = false,
+  onCloseModal,
+  initialUnit,
+  initialQuestionCount
+}: QuizGeneratorProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlUnit = searchParams.get('unit');
+
+  // Trial countdown check
+  const { trial, loading: trialLoading, refreshTrial } = useTrialCountdown(auth.currentUser);
+  const userRole = localStorage.getItem('userRole') || 'student';
+  const isPrivileged = userRole === 'admin' || userRole === 'staff';
+
+  // Configuration State
+  const [selectedExamMode, setSelectedExamMode] = useState<string>('All');
+  const [selectedUnit, setSelectedUnit] = useState<string>(urlUnit || initialUnit || 'All');
+  const [questionCount, setQuestionCount] = useState<number>(initialQuestionCount || 5);
+  const [selectedType, setSelectedType] = useState<string>('All');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All');
+  const [quizMode, setQuizMode] = useState<'study' | 'exam'>('study');
+
+  // Active Quiz State
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
+  const [activeQuestions, setActiveQuestions] = useState<QuestionData[]>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+
+  // User Responses
+  // Single Choice / True False: string
+  // Multiple Select (SATA): string[] (array of selected option IDs)
+  // Numeric: string (number string input)
+  // Ordered: string[] (array of step strings in user's chosen order)
+  const [userAnswers, setUserAnswers] = useState<Record<number, any>>({});
+  const [showRationale, setShowRationale] = useState<Record<number, boolean>>({});
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [isSavingScore, setIsSavingScore] = useState<boolean>(false);
+  const [dbQuestions, setDbQuestions] = useState<QuestionData[]>([]);
+
+  // Calculator state
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calcInput, setCalcInput] = useState('0');
+  const [calcPrevInput, setCalcPrevInput] = useState<string | null>(null);
+  const [calcOperation, setCalcOperation] = useState<string | null>(null);
+
+  // Flag for Review state
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+
+  const toggleFlagQuestion = (idx: number) => {
+    setFlaggedQuestions(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
+
+  const handleCalcNum = (num: string) => {
+    if (calcInput === '0' || calcInput.startsWith('Drip:') || calcInput.startsWith('BMI:')) {
+      setCalcInput(num);
+    } else {
+      setCalcInput(prev => prev + num);
+    }
+  };
+
+  const handleCalcClear = () => {
+    setCalcInput('0');
+    setCalcPrevInput(null);
+    setCalcOperation(null);
+  };
+
+  const handleCalcDel = () => {
+    if (calcInput.length <= 1 || calcInput.startsWith('Drip:') || calcInput.startsWith('BMI:')) {
+      setCalcInput('0');
+    } else {
+      setCalcInput(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleCalcPercent = () => {
+    try {
+      const val = parseFloat(calcInput);
+      setCalcInput((val / 100).toString());
+    } catch {
+      setCalcInput('Error');
+    }
+  };
+
+  const handleCalcOp = (op: string) => {
+    setCalcPrevInput(calcInput);
+    setCalcOperation(op);
+    setCalcInput('0');
+  };
+
+  const handleCalcEquals = () => {
+    if (calcPrevInput === null || calcOperation === null) return;
+    try {
+      const prev = parseFloat(calcPrevInput);
+      const current = parseFloat(calcInput);
+      let res = 0;
+      switch (calcOperation) {
+        case '+': res = prev + current; break;
+        case '-': res = prev - current; break;
+        case '*': res = prev * current; break;
+        case '/': res = current !== 0 ? prev / current : 0; break;
+        default: return;
+      }
+      setCalcInput(res.toString());
+      setCalcPrevInput(null);
+      setCalcOperation(null);
+    } catch {
+      setCalcInput('Error');
+    }
+  };
+
+  React.useEffect(() => {
+    const fetchDbQuestions = async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'questions')));
+        const items: QuestionData[] = [];
+        snap.docs.forEach(docSnap => {
+          const d = docSnap.data();
+          items.push({
+            id: docSnap.id,
+            questionTypeId: d.questionTypeId || 'single_choice',
+            questionTypeLabel: d.questionTypeLabel || 'Single Choice',
+            examMode: d.examMode || 'NCK',
+            unitDomain: d.unitDomain || 'Medical-Surgical Nursing',
+            difficulty: d.difficulty || 'Medium',
+            questionStem: d.questionStem || d.question || '',
+            options: d.options ? d.options.map((o: any, idx: number) => ({
+              id: typeof o === 'object' ? o.id || `opt-${idx}` : `opt-${idx}`,
+              text: typeof o === 'object' ? o.text : o,
+              isCorrect: typeof o === 'object' ? !!o.isCorrect : idx === 0
+            })) : [],
+            rationale: d.rationale || d.explanation || ''
+          });
+        });
+        setDbQuestions(items);
+      } catch (err) {
+        console.warn("Could not fetch extra DB questions for quiz generator:", err);
+      }
+    };
+    fetchDbQuestions();
+  }, []);
+
+  // Keyboard Arrow Shortcut Navigation
+  React.useEffect(() => {
+    if (!isQuizActive || isCompleted) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'ArrowLeft') {
+        setCurrentIndex(prev => Math.max(0, prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex(prev => Math.min(activeQuestions.length - 1, prev + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isQuizActive, isCompleted, activeQuestions.length]);
+
+  // Start Quiz Function
+  const handleStartQuiz = () => {
+    let filtered = [...ALL_QUIZ_QUESTIONS, ...dbQuestions];
+
+    if (selectedExamMode !== 'All') {
+      filtered = filtered.filter(q => {
+        const cat = normalizeExamCategory(q.examMode);
+        return cat === selectedExamMode || q.examMode === selectedExamMode;
+      });
+    }
+
+    if (selectedUnit !== 'All') {
+      filtered = filtered.filter(q => q.unitDomain === selectedUnit);
+    }
+
+    if (selectedType !== 'All') {
+      filtered = filtered.filter(q => q.questionTypeId === selectedType);
+    }
+
+    if (selectedDifficulty !== 'All') {
+      filtered = filtered.filter(q => q.difficulty === selectedDifficulty);
+    }
+
+    // Shuffle questions
+    const shuffled = filtered.sort(() => 0.5 - Math.random());
+    const finalQuestions = shuffled.slice(0, Math.min(questionCount, shuffled.length));
+
+    if (finalQuestions.length === 0) {
+      alert('No questions found matching your specific filter criteria. Please broaden your selection.');
+      return;
+    }
+
+    // Initialize ordering questions steps
+    const initialAnswers: Record<number, any> = {};
+    finalQuestions.forEach((q, idx) => {
+      if ((q.questionTypeId === 'order_drag' || q.questionTypeId === 'order_numbers') && q.orderedSteps) {
+        // Shuffle steps for ordering question initially
+        initialAnswers[idx] = [...q.orderedSteps].sort(() => 0.5 - Math.random());
+      }
+    });
+
+    setActiveQuestions(finalQuestions);
+    setUserAnswers(initialAnswers);
+    setCurrentIndex(0);
+    setShowRationale({});
+    setFlaggedQuestions(new Set());
+    setIsCompleted(false);
+    setIsQuizActive(true);
+  };
+
+  // Helper to check correctness of an answer
+  const isQuestionCorrect = (q: QuestionData, index: number): boolean => {
+    const ans = userAnswers[index];
+    if (ans === undefined || ans === null) return false;
+
+    if (q.questionTypeId === 'single_choice') {
+      const correctOpt = q.options?.find(o => o.isCorrect);
+      return ans === correctOpt?.id;
+    }
+
+    if (q.questionTypeId === 'multiple_select') {
+      if (!Array.isArray(ans)) return false;
+      const correctOptIds = q.options?.filter(o => o.isCorrect).map(o => o.id) || [];
+      if (ans.length !== correctOptIds.length) return false;
+      return correctOptIds.every(id => ans.includes(id));
+    }
+
+    if (q.questionTypeId === 'numeric') {
+      const val = parseFloat(ans);
+      if (isNaN(val) || q.numericValue === undefined) return false;
+      const tol = q.tolerance || 0;
+      return Math.abs(val - q.numericValue) <= tol;
+    }
+
+    if (q.questionTypeId === 'true_false') {
+      return ans === q.trueFalseAnswer;
+    }
+
+    if (q.questionTypeId === 'order_drag' || q.questionTypeId === 'order_numbers') {
+      if (!Array.isArray(ans) || !q.orderedSteps) return false;
+      return JSON.stringify(ans) === JSON.stringify(q.orderedSteps);
+    }
+
+    return false;
+  };
+
+  // Drag and Drop state for ordering questions
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, stepIdx: number) => {
+    setDraggedIndex(stepIdx);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, questionIdx: number, targetIdx: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIdx) return;
+    const currentList: string[] = [...(userAnswers[questionIdx] || activeQuestions[questionIdx].orderedSteps || [])];
+    const [moved] = currentList.splice(draggedIndex, 1);
+    currentList.splice(targetIdx, 0, moved);
+    setUserAnswers(prev => ({ ...prev, [questionIdx]: currentList }));
+    setDraggedIndex(null);
+  };
+  const moveStep = (questionIdx: number, stepIdx: number, direction: 'up' | 'down') => {
+    const currentList: string[] = [...(userAnswers[questionIdx] || [])];
+    const targetIdx = direction === 'up' ? stepIdx - 1 : stepIdx + 1;
+    if (targetIdx < 0 || targetIdx >= currentList.length) return;
+
+    const temp = currentList[stepIdx];
+    currentList[stepIdx] = currentList[targetIdx];
+    currentList[targetIdx] = temp;
+
+    setUserAnswers(prev => ({ ...prev, [questionIdx]: currentList }));
+  };
+
+  // Calculate overall quiz score
+  const calculateScore = () => {
+    let correct = 0;
+    activeQuestions.forEach((q, idx) => {
+      if (isQuestionCorrect(q, idx)) {
+        correct++;
+      }
+    });
+    const total = activeQuestions.length;
+    const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+    return { correct, total, percentage };
+  };
+
+  // Complete Quiz & Save to Firestore
+  const handleFinishQuiz = async () => {
+    setIsCompleted(true);
+    const scoreData = calculateScore();
+
+    if (auth.currentUser?.email) {
+      try {
+        setIsSavingScore(true);
+
+        // Build per-unit performance breakdown
+        const unitBreakdown: Record<string, { correct: number; total: number }> = {};
+        activeQuestions.forEach((q, idx) => {
+          const u = q.unitDomain || selectedUnit || 'General Nursing';
+          if (!unitBreakdown[u]) {
+            unitBreakdown[u] = { correct: 0, total: 0 };
+          }
+          unitBreakdown[u].total += 1;
+          if (isQuestionCorrect(q, idx)) {
+            unitBreakdown[u].correct += 1;
+          }
+        });
+
+        await addDoc(collection(db, 'examHistory'), {
+          user: auth.currentUser.email,
+          title: `Quick Quiz: ${selectedUnit === 'All' ? 'All Units' : selectedUnit}`,
+          category: selectedUnit,
+          score: scoreData.percentage,
+          correctQuestions: scoreData.correct,
+          totalQuestions: scoreData.total,
+          unitBreakdown,
+          timestamp: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error('Error saving score:', err);
+      } finally {
+        setIsSavingScore(false);
+      }
+    }
+  };
+
+  // Renderer for Question Controls
+  const renderQuestionInput = (q: QuestionData, index: number) => {
+    const isRevealed = showRationale[index] || (isCompleted && quizMode === 'exam');
+
+    if (q.questionTypeId === 'single_choice') {
+      return (
+        <div className="space-y-3">
+          {q.options?.map((opt, i) => {
+            const isSelected = userAnswers[index] === opt.id;
+            const isCorrect = opt.isCorrect;
+
+            return (
+              <button
+                key={opt.id}
+                onClick={() => {
+                  if (isCompleted) return;
+                  setUserAnswers(prev => ({ ...prev, [index]: opt.id }));
+                  if (quizMode === 'study') {
+                    setShowRationale(prev => ({ ...prev, [index]: true }));
+                  }
+                }}
+                className={`w-full p-4 rounded-xl border text-left font-medium text-sm transition-all flex items-start gap-3 ${
+                  isRevealed && isCorrect
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-bold ring-1 ring-emerald-400'
+                    : isRevealed && isSelected && !isCorrect
+                    ? 'bg-rose-50 border-rose-300 text-rose-950 font-bold'
+                    : isSelected
+                    ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span className="flex-grow">{opt.text}</span>
+                {isRevealed && isCorrect && <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (q.questionTypeId === 'multiple_select') {
+      const selectedOpts: string[] = userAnswers[index] || [];
+
+      const toggleSATA = (optId: string) => {
+        if (isCompleted) return;
+        const current = [...selectedOpts];
+        const existIdx = current.indexOf(optId);
+        if (existIdx > -1) {
+          current.splice(existIdx, 1);
+        } else {
+          current.push(optId);
+        }
+        setUserAnswers(prev => ({ ...prev, [index]: current }));
+      };
+
+      return (
+        <div className="space-y-3">
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            Select All Options That Apply to this Clinical Scenario
+          </div>
+          {q.options?.map((opt, i) => {
+            const isChecked = selectedOpts.includes(opt.id);
+            const isCorrect = opt.isCorrect;
+
+            return (
+              <button
+                key={opt.id}
+                onClick={() => toggleSATA(opt.id)}
+                className={`w-full p-4 rounded-xl border text-left font-medium text-sm transition-all flex items-start gap-3 ${
+                  isRevealed && isCorrect
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-bold ring-1 ring-emerald-400'
+                    : isRevealed && isChecked && !isCorrect
+                    ? 'bg-rose-50 border-rose-300 text-rose-950 font-bold'
+                    : isChecked
+                    ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 ${
+                  isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
+                }`}>
+                  {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                </div>
+                <span className="flex-grow">{opt.text}</span>
+              </button>
+            );
+          })}
+          {quizMode === 'study' && !isRevealed && (
+            <Button
+              size="sm"
+              onClick={() => setShowRationale(prev => ({ ...prev, [index]: true }))}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+            >
+              Check My SATA Answer
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    if (q.questionTypeId === 'numeric') {
+      const currentVal = userAnswers[index] || '';
+
+      return (
+        <div className="space-y-4">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+              Enter Calculated Numerical Value ({q.unitOfMeasure || 'units'})
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                step="any"
+                value={currentVal}
+                onChange={(e) => setUserAnswers(prev => ({ ...prev, [index]: e.target.value }))}
+                placeholder="Type your number..."
+                disabled={isCompleted}
+                className="w-full md:w-64 px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-lg font-extrabold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm font-bold text-slate-600">{q.unitOfMeasure}</span>
+            </div>
+          </div>
+          {quizMode === 'study' && !isRevealed && (
+            <Button
+              size="sm"
+              onClick={() => setShowRationale(prev => ({ ...prev, [index]: true }))}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+            >
+              Check Calculation Answer
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    if (q.questionTypeId === 'true_false') {
+      const currentAns = userAnswers[index];
+
+      return (
+        <div className="grid grid-cols-2 gap-4">
+          {[true, false].map((val) => {
+            const isSelected = currentAns === val;
+            const isCorrect = val === q.trueFalseAnswer;
+
+            return (
+              <button
+                key={val ? 'true' : 'false'}
+                onClick={() => {
+                  if (isCompleted) return;
+                  setUserAnswers(prev => ({ ...prev, [index]: val }));
+                  if (quizMode === 'study') {
+                    setShowRationale(prev => ({ ...prev, [index]: true }));
+                  }
+                }}
+                className={`p-6 rounded-2xl border text-center font-extrabold text-lg transition-all ${
+                  isRevealed && isCorrect
+                    ? 'bg-emerald-50 border-emerald-400 text-emerald-900 ring-2 ring-emerald-400'
+                    : isRevealed && isSelected && !isCorrect
+                    ? 'bg-rose-50 border-rose-300 text-rose-950 font-bold'
+                    : isSelected
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {val ? 'TRUE' : 'FALSE'}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (q.questionTypeId === 'order_drag' || q.questionTypeId === 'order_numbers') {
+      const orderedList: string[] = userAnswers[index] || q.orderedSteps || [];
+
+      return (
+        <div className="space-y-3">
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>Click and drag choices using the grip handle <GripVertical className="w-3.5 h-3.5 inline text-blue-600" /> or use the up/down controls to arrange them in correct priority order (1 = Highest Priority).</span>
+          </div>
+          <div className="space-y-2">
+            {orderedList.map((stepText, i) => (
+              <div
+                key={i}
+                draggable={!isCompleted}
+                onDragStart={(e) => handleDragStart(e, i)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, index, i)}
+                className={`p-3.5 bg-white border rounded-xl flex items-center justify-between gap-3 shadow-2xs transition-all cursor-grab active:cursor-grabbing ${
+                  draggedIndex === i ? 'opacity-40 border-blue-400 border-dashed' : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-slate-400 hover:text-slate-600 p-0.5">
+                    <GripVertical className="w-5 h-5" />
+                  </div>
+                  <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center shrink-0">
+                    #{i + 1}
+                  </span>
+                  <p className="text-xs md:text-sm font-semibold text-slate-800">{stepText}</p>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    disabled={i === 0 || isCompleted}
+                    onClick={() => moveStep(index, i, 'up')}
+                    className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-md text-slate-700"
+                    title="Move Up"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === orderedList.length - 1 || isCompleted}
+                    onClick={() => moveStep(index, i, 'down')}
+                    className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-md text-slate-700"
+                    title="Move Down"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {quizMode === 'study' && !isRevealed && (
+            <Button
+              size="sm"
+              onClick={() => setShowRationale(prev => ({ ...prev, [index]: true }))}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+            >
+              Check Ordered Priorities
+            </Button>
+          )}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  if (!trialLoading && trial.isExpired && !trial.isPaid && !isPrivileged) {
+    if (embeddedModal) {
+      return (
+        <div className="p-6 text-center space-y-4 bg-white rounded-2xl border border-rose-200">
+          <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-extrabold text-slate-900">Trial Period Completed</h3>
+          <p className="text-xs text-slate-600 max-w-md mx-auto">
+            Your 14-day free preview period has ended. Please upgrade your account to generate custom quizzes and access the full exam repository.
+          </p>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            {onCloseModal && (
+              <Button variant="outline" onClick={onCloseModal}>
+                Close
+              </Button>
+            )}
+            <Button onClick={() => navigate('/pricing')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold">
+              Upgrade Account
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div className="pb-16">
+        <TrialExpiredExamLock trial={trial} onRefresh={refreshTrial} />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`max-w-4xl mx-auto ${embeddedModal ? 'p-0' : 'space-y-4'}`}>
+      {!isQuizActive ? (
+        /* Configuration Screen */
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 md:p-6 space-y-4">
+          {/* Compact Header */}
+          <div className="flex items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <BrainCircuit className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-none">
+                    Configure Clinical Nursing Practice
+                  </h1>
+                  <span className="hidden sm:inline-flex px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-extrabold border border-blue-200 uppercase tracking-wide">
+                    Adaptive Generator
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Select your target curriculum, specialty unit, question formats, and feedback mode to launch your practice session.
+                </p>
+              </div>
+            </div>
+            {embeddedModal && onCloseModal && (
+              <button 
+                onClick={onCloseModal} 
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Form Options Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+            {/* Target Exam Category */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-blue-600" />
+                  Target Exam Category
+                </label>
+                <span className="text-[10px] font-bold text-blue-600">
+                  {selectedExamMode === 'All' ? '17 Exam Types' : selectedExamMode}
+                </span>
+              </div>
+              <select
+                value={selectedExamMode}
+                onChange={(e) => setSelectedExamMode(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors hover:bg-slate-100/80"
+              >
+                <option value="All">All Exam Types (Comprehensive Board Prep)</option>
+                {ALL_EXAM_TYPES.map(examType => (
+                  <option key={examType} value={examType}>{examType}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Nursing Unit / Specialty */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                  Nursing Unit / Specialty
+                </label>
+                <span className="text-[10px] font-bold text-blue-600">
+                  {selectedUnit === 'All' ? '18 Units Available' : selectedUnit}
+                </span>
+              </div>
+              <select
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors hover:bg-slate-100/80"
+              >
+                <option value="All">All Curriculum Units (Comprehensive Practice)</option>
+                {NURSING_UNITS.map((unit) => {
+                  const unitCount = ALL_QUIZ_QUESTIONS.filter(q => q.unitDomain === unit).length || 5;
+                  return (
+                    <option key={unit} value={unit}>
+                      {unit} ({unitCount} Qs)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Question Format Type */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-blue-600" />
+                Question Format Type
+              </label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors hover:bg-slate-100/80"
+              >
+                <option value="All">All Formats (MCQ, SATA, Math, Ordering, Case-based)</option>
+                <option value="single_choice">Multiple Choice (Single Answer)</option>
+                <option value="multiple_select">Select All That Apply (SATA)</option>
+                <option value="true_false">True or False</option>
+                <option value="numeric">Dosage Math & Numerical Calculations</option>
+                <option value="short_answer">Short Answer</option>
+                <option value="fill_blank">Fill in the Blank</option>
+                <option value="hotspot">Hotspot</option>
+                <option value="order_numbers">Ordering : Numbers</option>
+                <option value="order_drag">Ordering : Drag and Drop</option>
+                <option value="case_based">Case Based</option>
+                <option value="case_checkbox">Case Based : CheckBox</option>
+                <option value="case_highlight">Case Based : HighLight</option>
+                <option value="case_dropdown">Case Based : DropDown</option>
+                <option value="case_dynamic_dnd">Case Based : Dynamic DnD</option>
+                <option value="case_distinct_dnd">Case Based : Distinct DnD</option>
+                <option value="case_stratified_dnd">Case Based : Stratified DnD</option>
+                <option value="file_upload">File Upload</option>
+              </select>
+            </div>
+
+            {/* Difficulty Level */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-blue-600" />
+                Difficulty Level
+              </label>
+              <select
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-colors hover:bg-slate-100/80"
+              >
+                <option value="All">All Difficulty Levels (Adaptive)</option>
+                <option value="Easy">Beginner / Easy</option>
+                <option value="Medium">Medium / Standard Board Level</option>
+                <option value="Hard">Advanced / Critical Clinical Judgment</option>
+              </select>
+            </div>
+
+            {/* Number of Questions */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                Number of Questions
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[5, 10, 15, 20].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setQuestionCount(num)}
+                    className={`py-2 px-1 rounded-lg border font-bold text-xs text-center transition-all cursor-pointer ${
+                      questionCount === num
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {num} Qs
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feedback & Mode */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                Feedback & Evaluation Mode
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setQuizMode('study')}
+                  className={`py-1.5 px-2.5 rounded-lg border text-xs font-bold transition-all text-left cursor-pointer flex items-center justify-between ${
+                    quizMode === 'study'
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold leading-none">Study Mode</div>
+                    <div className="text-[10px] opacity-80 mt-0.5 leading-none">Instant Rationales</div>
+                  </div>
+                  {quizMode === 'study' && <Check className="w-3.5 h-3.5 shrink-0 ml-1" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuizMode('exam')}
+                  className={`py-1.5 px-2.5 rounded-lg border text-xs font-bold transition-all text-left cursor-pointer flex items-center justify-between ${
+                    quizMode === 'exam'
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold leading-none">Exam Mode</div>
+                    <div className="text-[10px] opacity-80 mt-0.5 leading-none">Score at the End</div>
+                  </div>
+                  {quizMode === 'exam' && <Check className="w-3.5 h-3.5 shrink-0 ml-1" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Compact Launch Footer */}
+          <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-500 flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Session: <strong className="text-slate-800">{questionCount} Questions</strong> • <strong className="text-slate-800">{selectedUnit === 'All' ? 'All Units' : selectedUnit}</strong> • <span className="capitalize">{quizMode}</span></span>
+            </div>
+            <Button
+              onClick={handleStartQuiz}
+              className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl gap-2 shadow-md shadow-blue-500/20 cursor-pointer"
+            >
+              <Play className="w-4 h-4 fill-white" /> Launch Practice Quiz
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* Active Quiz Runner */
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+          {/* Top Bar */}
+          <div className="p-5 bg-slate-900 text-white flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-xs">
+                <BrainCircuit className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs text-blue-400 font-bold uppercase tracking-wider block">
+                  {activeQuestions[currentIndex]?.unitDomain}
+                </span>
+                <h3 className="font-bold text-sm md:text-base">Quick Quiz Practice</h3>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCalculator(prev => !prev)}
+                className="gap-1.5 bg-slate-800 text-blue-400 border-slate-700 hover:bg-slate-700 hover:text-white font-extrabold text-xs shadow-xs"
+              >
+                <Calculator className="w-4 h-4 text-blue-400" />
+                {showCalculator ? 'Close Calc' : 'Calculator'}
+              </Button>
+              <button
+                onClick={() => setIsQuizActive(false)}
+                className="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors font-bold"
+              >
+                Exit Quiz
+              </button>
+            </div>
+          </div>
+
+          {showCalculator && (
+            <div className="px-6 pt-4 pb-2 bg-slate-900 border-b border-slate-800 flex justify-end">
+              <div className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 p-4 w-72 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-1.5 text-xs font-extrabold text-blue-400">
+                    <Calculator className="w-3.5 h-3.5" /> Medical & Board Calculator
+                  </div>
+                  <button 
+                    onClick={() => setShowCalculator(false)}
+                    className="text-slate-400 hover:text-white p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-right font-mono text-xl tracking-wider text-emerald-400 overflow-x-auto">
+                  {calcInput}
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5 text-xs font-bold">
+                  <button onClick={() => handleCalcClear()} className="p-2 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded-lg">C</button>
+                  <button onClick={() => handleCalcDel()} className="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg">⌫</button>
+                  <button onClick={() => handleCalcPercent()} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg">%</button>
+                  <button onClick={() => handleCalcOp('/')} className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">÷</button>
+
+                  <button onClick={() => handleCalcNum('7')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">7</button>
+                  <button onClick={() => handleCalcNum('8')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">8</button>
+                  <button onClick={() => handleCalcNum('9')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">9</button>
+                  <button onClick={() => handleCalcOp('*')} className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">×</button>
+
+                  <button onClick={() => handleCalcNum('4')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">4</button>
+                  <button onClick={() => handleCalcNum('5')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">5</button>
+                  <button onClick={() => handleCalcNum('6')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">6</button>
+                  <button onClick={() => handleCalcOp('-')} className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">-</button>
+
+                  <button onClick={() => handleCalcNum('1')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">1</button>
+                  <button onClick={() => handleCalcNum('2')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">2</button>
+                  <button onClick={() => handleCalcNum('3')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">3</button>
+                  <button onClick={() => handleCalcOp('+')} className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">+</button>
+
+                  <button onClick={() => handleCalcNum('0')} className="col-span-2 p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">0</button>
+                  <button onClick={() => handleCalcNum('.')} className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg">.</button>
+                  <button onClick={() => handleCalcEquals()} className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg">=</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isCompleted ? (
+            <div className="p-6 md:p-8 space-y-6 pb-24">
+              {/* Progress Header & Top Quick Navigation Bar */}
+              <div className="space-y-3 bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
+                <div className="flex flex-wrap justify-between items-center gap-2 text-xs font-bold text-slate-500">
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <span>Question <strong>{currentIndex + 1}</strong> of <strong>{activeQuestions.length}</strong></span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-bold">
+                      {activeQuestions[currentIndex]?.questionTypeLabel}
+                    </span>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                      activeQuestions[currentIndex]?.difficulty === 'Hard' ? 'bg-rose-100 text-rose-800' :
+                      activeQuestions[currentIndex]?.difficulty === 'Medium' ? 'bg-amber-100 text-amber-800' :
+                      'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {activeQuestions[currentIndex]?.difficulty}
+                    </span>
+                  </span>
+
+                  {/* Top Header Quick Navigation Buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toggleFlagQuestion(currentIndex)}
+                      className={`h-8 text-xs px-3 gap-1.5 font-bold transition-all ${
+                        flaggedQuestions.has(currentIndex)
+                          ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Bookmark className={`w-3.5 h-3.5 ${flaggedQuestions.has(currentIndex) ? 'fill-amber-600 text-amber-600' : 'text-slate-500'}`} />
+                      {flaggedQuestions.has(currentIndex) ? 'Flagged' : 'Flag for Review'}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentIndex === 0}
+                      onClick={() => setCurrentIndex(prev => prev - 1)}
+                      className="h-8 text-xs px-3 gap-1 shadow-2xs bg-white"
+                      title="Previous Question (Left Arrow)"
+                    >
+                      <ChevronLeft className="w-4 h-4" /> Previous
+                    </Button>
+
+                    {currentIndex < activeQuestions.length - 1 ? (
+                      <Button
+                        size="sm"
+                        onClick={() => setCurrentIndex(prev => prev + 1)}
+                        className="h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white gap-1 shadow-xs"
+                        title="Next Question (Right Arrow)"
+                      >
+                        Next <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={handleFinishQuiz}
+                        disabled={isSavingScore}
+                        className="h-8 text-xs px-3 bg-emerald-600 hover:bg-emerald-700 text-white gap-1 font-extrabold shadow-xs"
+                      >
+                        {isSavingScore ? 'Saving...' : 'Submit'} <Award className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-blue-600 h-full transition-all duration-300"
+                    style={{ width: `${((currentIndex + 1) / activeQuestions.length) * 100}%` }}
+                  />
+                </div>
+
+                {/* Quick Question Jumper Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 no-scrollbar">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
+                    Jump:
+                  </span>
+                  {activeQuestions.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`w-7 h-7 text-xs font-bold rounded-lg shrink-0 transition-all relative ${
+                        currentIndex === idx
+                          ? 'bg-blue-600 text-white shadow-xs scale-105'
+                          : userAnswers[idx] !== undefined
+                          ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                      } ${flaggedQuestions.has(idx) ? 'ring-2 ring-amber-400 ring-offset-1' : ''}`}
+                    >
+                      {idx + 1}
+                      {flaggedQuestions.has(idx) && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Question Stem */}
+              <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                <p className="font-bold text-slate-900 text-base md:text-lg leading-relaxed">
+                  {activeQuestions[currentIndex]?.questionStem}
+                </p>
+              </div>
+
+              {/* Interactive Input Renderer */}
+              {renderQuestionInput(activeQuestions[currentIndex], currentIndex)}
+
+              {/* Rationale Display */}
+              {(showRationale[currentIndex] || (isCompleted && quizMode === 'exam')) && (
+                <div className="p-5 bg-blue-50 border border-blue-200 rounded-xl space-y-2 text-xs md:text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-blue-900 uppercase tracking-wider block">
+                      Clinical Rationale & Explanation
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold ${
+                      isQuestionCorrect(activeQuestions[currentIndex], currentIndex)
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {isQuestionCorrect(activeQuestions[currentIndex], currentIndex) ? 'Correct Answer!' : 'Incorrect Answer'}
+                    </span>
+                  </div>
+                  {activeQuestions[currentIndex]?.calculationSteps && (
+                    <div className="p-3 bg-white/80 border border-blue-200 rounded-lg text-blue-950 font-mono text-xs">
+                      <strong>Calculation Steps:</strong> {activeQuestions[currentIndex].calculationSteps}
+                    </div>
+                  )}
+                  <p className="text-blue-950 leading-relaxed">
+                    {activeQuestions[currentIndex]?.rationale}
+                  </p>
+                </div>
+              )}
+
+              {/* Sticky Navigation Bar - Always visible on screen without scrolling */}
+              <div className="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md pt-3 pb-3 px-4 sm:px-6 border-t border-slate-200/90 shadow-lg z-30 rounded-b-2xl flex justify-between items-center -mx-6 -mb-6 md:-mx-8 md:-mb-8">
+                <Button
+                  variant="outline"
+                  disabled={currentIndex === 0}
+                  onClick={() => setCurrentIndex(prev => prev - 1)}
+                  className="gap-1.5 text-xs sm:text-sm font-semibold"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Previous
+                </Button>
+
+                <div className="text-xs font-semibold text-slate-500 hidden sm:block">
+                  Use <kbd className="px-1.5 py-0.5 bg-slate-100 border rounded font-mono text-[10px]">←</kbd> <kbd className="px-1.5 py-0.5 bg-slate-100 border rounded font-mono text-[10px]">→</kbd> arrow keys to navigate
+                </div>
+
+                {currentIndex < activeQuestions.length - 1 ? (
+                  <Button 
+                    onClick={() => setCurrentIndex(prev => prev + 1)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 text-xs sm:text-sm font-bold shadow-sm"
+                  >
+                    Next Question <ChevronRight className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleFinishQuiz}
+                    disabled={isSavingScore}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 text-xs sm:text-sm font-extrabold shadow-sm"
+                  >
+                    {isSavingScore ? 'Saving Score...' : 'Submit & Complete Quiz'} <Award className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Results Summary */
+            <div className="p-8 text-center space-y-6">
+              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <Award className="w-10 h-10" />
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-3xl font-extrabold text-slate-900">Practice Quiz Completed!</h2>
+                <p className="text-sm text-slate-500">
+                  Performance results for <strong>{selectedUnit === 'All' ? 'All Nursing Units' : selectedUnit}</strong>
+                </p>
+              </div>
+
+              {(() => {
+                const score = calculateScore();
+                return (
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 max-w-sm mx-auto space-y-3 shadow-2xs">
+                    <div className="text-5xl font-black text-slate-900">
+                      {score.percentage}%
+                    </div>
+                    <p className="text-xs font-semibold text-slate-600">
+                      Answered <strong className="text-emerald-600">{score.correct}</strong> out of <strong>{score.total}</strong> questions correctly.
+                    </p>
+                  </div>
+                );
+              })()}
+
+              <div className="flex justify-center gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsCompleted(false);
+                    setIsQuizActive(false);
+                  }}
+                  className="gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" /> Configure New Quiz
+                </Button>
+                <Button 
+                  onClick={() => navigate('/dashboard')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                >
+                  Return to Dashboard
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
