@@ -29,6 +29,7 @@ import StudyAssistantPage from './pages/StudyAssistantPage';
 import ClinicalLibraryPage from './pages/ClinicalLibraryPage';
 import MyCourses from './pages/MyCourses';
 import PerformancePage from './pages/PerformancePage';
+import LeaderboardPage from './pages/LeaderboardPage';
 import ScalabilityDashboard from './pages/ScalabilityDashboard';
 import AdminLibraryResources from './pages/admin/AdminLibraryResources';
 import { SessionTimeoutManager } from './components/SessionTimeoutManager';
@@ -132,6 +133,7 @@ export default function App() {
           <Route path="generator" element={<QuizGeneratorPage />} />
           <Route path="courses" element={<MyCourses />} />
           <Route path="performance" element={<PerformancePage />} />
+          <Route path="leaderboard" element={<LeaderboardPage />} />
           <Route path="*" element={<PlaceholderPage title="Work in progress" />} />
         </Route>
 

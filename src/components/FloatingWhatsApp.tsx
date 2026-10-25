@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, Phone, Copy, Check, ExternalLink, X } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
@@ -6,6 +6,17 @@ import { db, auth } from '@/lib/firebase';
 export function FloatingWhatsApp() {
   const [copied, setCopied] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldAnimate(true);
+      const stopTimer = setTimeout(() => setShouldAnimate(false), 5000);
+      return () => clearTimeout(stopTimer);
+    }, 30000); // 30 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const rawNumber = '254112294835';
   const displayPhone = '0112 294 835';
@@ -27,7 +38,8 @@ export function FloatingWhatsApp() {
         status: 'active'
       });
     } catch (err) {
-      console.error("Error logging WhatsApp inquiry to Firestore", err);
+      // Fallback silently if collection rules restrict unauthenticated writes
+      localStorage.setItem('nckprep_last_whatsapp_inquiry', JSON.stringify({ queryId, timestamp: new Date().toISOString() }));
     }
 
     const customMessage = `Hello NCKPrep, I need assistance regarding my nursing licensure prep. [Ref ID: ${queryId}]`;
@@ -77,9 +89,16 @@ export function FloatingWhatsApp() {
     <aside
       id="floating-whatsapp-banner"
       aria-label="WhatsApp Contact Banner"
-      className="fixed top-[70px] sm:top-[72px] right-3 sm:right-6 md:right-8 z-30 max-w-[calc(100vw-1.5rem)] transition-all duration-300 animate-in fade-in slide-in-from-top-2 slide-in-from-right-4"
+      className={`fixed top-[70px] sm:top-[72px] right-3 sm:right-6 md:right-8 z-30 max-w-[calc(100vw-1.5rem)] transition-all duration-300 animate-in fade-in slide-in-from-top-2 slide-in-from-right-4 ${
+        shouldAnimate ? 'animate-bounce' : ''
+      }`}
     >
       <div className="relative group bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-xl shadow-slate-900/15 border border-emerald-500/40 p-2 sm:p-2.5 flex items-center gap-2.5 sm:gap-3 hover:border-emerald-400 transition-all">
+        {/* Recent Response Time Tooltip on Hover */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-emerald-300 text-[11px] font-extrabold rounded-lg shadow-xl border border-emerald-500/40 whitespace-nowrap z-50 animate-in fade-in">
+          <span>⚡ Typical response time: Under 5 minutes</span>
+        </div>
+
         {/* Clickable WhatsApp link trigger with automated query tracking */}
         <a
           href={`https://wa.me/${rawNumber}`}

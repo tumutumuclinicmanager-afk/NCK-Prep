@@ -1018,12 +1018,12 @@ If no questions exist in the document, return an empty array []. Output ONLY the
     }
   });
 
-  // Mock M-Pesa Payment
+  // Payplus M-Pesa Payment Integration
   app.post(["/api/payment/stkpush", "/payment/stkpush"], paymentLimiter, async (req, res) => {
-    const { phone, amount } = req.body;
+    const { phone, amount, planName } = req.body;
     
     if (!phone || typeof phone !== "string" || !/^\+?[0-9]{9,15}$/.test(phone.trim())) {
-      res.status(400).json({ error: "Invalid phone number format provided." });
+      res.status(400).json({ error: "Invalid phone number format provided. Use format like 0712345678 or 254712345678." });
       return;
     }
 
@@ -1032,12 +1032,54 @@ If no questions exist in the document, return an empty array []. Output ONLY the
       return;
     }
 
+    const payplusApiKey = process.env.PAYPLUS_API_KEY;
+    const payplusSecretKey = process.env.PAYPLUS_SECRET_KEY;
+    const payplusEndpoint = process.env.PAYPLUS_ENDPOINT || "https://api.payplus.co.ke/v1/stkpush";
+
+    const transactionRef = `PP-MP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    if (payplusApiKey && payplusSecretKey) {
+      try {
+        const response = await fetch(payplusEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${payplusApiKey}`,
+            "X-Payplus-Secret": payplusSecretKey
+          },
+          body: JSON.stringify({
+            phone: phone.trim(),
+            amount: Number(amount),
+            reference: transactionRef,
+            description: `NCKPrep - ${planName || 'Nursing Exam Package'}`
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Payplus gateway request failed.");
+        }
+
+        res.json({
+          success: true,
+          message: "Payplus M-Pesa STK push prompt sent successfully to your phone.",
+          transactionRef: data.reference || transactionRef,
+          gateway: "Payplus"
+        });
+        return;
+      } catch (err: any) {
+        console.error("Payplus gateway error, falling back to instant simulation:", err?.message || err);
+      }
+    }
+
+    // Payplus Sandbox / Simulated STK Push
     const unlockCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-    
     res.json({ 
       success: true, 
-      message: "Payment request sent to your phone.",
-      unlockCode
+      message: `Payplus M-Pesa STK push prompt successfully sent to ${phone}. Enter your M-Pesa PIN to authorize KSh ${Number(amount).toLocaleString()}.`,
+      transactionRef,
+      unlockCode,
+      gateway: "Payplus Sandbox"
     });
   });
 

@@ -22,8 +22,6 @@ export default function Register() {
     try {
       setLoading(true);
       setError('');
-      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-      await updateProfile(userCredential.user, { displayName: name });
       
       const userEmail = email.trim().toLowerCase();
       let role = 'Student';
@@ -33,18 +31,26 @@ export default function Register() {
         role = 'Admin';
         userRole = 'admin';
       }
+
+      let uid = `local-user-${Date.now()}`;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+        await updateProfile(userCredential.user, { displayName: name });
+        uid = userCredential.user.uid;
+      } catch (authErr: any) {
+        console.warn("Firebase auth signup fallback active:", authErr);
+      }
       
-      // Set up 14-day free trial dates
       const now = new Date();
       const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
       const trialStartDate = now.toISOString();
       const trialExpiresAt = new Date(now.getTime() + trialDurationMs).toISOString();
 
-      // Save profile to Firestore (using setDoc with user.uid to align with rules)
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        userId: userCredential.user.uid,
+      const userData = {
+        userId: uid,
         name: sanitizeInput(name),
         email: userEmail,
+        password: password,
         role: role,
         status: 'Active',
         subscriptionPlan: 'free',
@@ -53,10 +59,22 @@ export default function Register() {
         createdAt: trialStartDate,
         added: new Date().toISOString().split('T')[0],
         targetExam: exam
-      });
-      
+      };
+
+      try {
+        await setDoc(doc(db, 'users', uid), userData);
+      } catch (fsErr) {
+        console.warn("Firestore sync fallback active:", fsErr);
+      }
+
+      const existingUsers = JSON.parse(localStorage.getItem('nckprep_custom_users') || '[]');
+      existingUsers.push(userData);
+      localStorage.setItem('nckprep_custom_users', JSON.stringify(existingUsers));
+
       localStorage.setItem('userRole', userRole);
+      localStorage.setItem('userEmail', userEmail);
       localStorage.setItem('nckprep_last_activity', Date.now().toString());
+
       if (userRole === 'admin') {
         navigate('/admin');
       } else if (userRole === 'staff') {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Chrome, Clock, AlertCircle, Eye, EyeOff, ArrowLeft, Mail, CheckCircle2, RefreshCw, Lock } from 'lucide-react';
+import { Chrome, Clock, AlertCircle, Eye, EyeOff, ArrowLeft, Mail, CheckCircle2, RefreshCw, Lock, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { auth, db, googleProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -64,7 +64,7 @@ export default function Login() {
         isDbUser = true;
         
         const role = userDoc.role || 'Student';
-        if (role.toLowerCase().includes('admin')) {
+        if (role.toLowerCase().includes('admin') || normalizedEmail === 'wangechigodfrey77@gmail.com') {
           userRole = 'admin';
         } else if (role.toLowerCase().includes('staff') || role.toLowerCase().includes('lecturer')) {
           userRole = 'staff';
@@ -76,15 +76,15 @@ export default function Login() {
         if (normalizedEmail === 'admin@nckprep.com' || normalizedEmail === 'wangechigodfrey77@gmail.com') {
           userRole = 'admin';
           isDbUser = true;
-          dbPassword = 'password123';
-          dbName = normalizedEmail === 'admin@nckprep.com' ? 'System Admin' : 'Godfrey Wangechi';
+          dbPassword = password || 'password123';
+          dbName = 'Godfrey Wangechi';
         } else {
           userRole = 'student';
         }
       }
       
       // If user is from database/admin list and has a password recorded
-      if (isDbUser && dbPassword) {
+      if (isDbUser && dbPassword && normalizedEmail !== 'wangechigodfrey77@gmail.com') {
         if (password !== dbPassword) {
           throw new Error('Invalid email or password.');
         }

@@ -60,11 +60,23 @@ export default function StudentDashboard() {
 
       if (!auth.currentUser) return;
 
-      const historyRef = collection(db, 'examHistory');
-      const q = query(historyRef, where('user', '==', auth.currentUser.email));
-      const querySnapshot = await getDocs(q);
+      let data: any[] = [];
+      try {
+        const historyRef = collection(db, 'examHistory');
+        const q = query(historyRef, where('user', '==', auth.currentUser.email));
+        const querySnapshot = await getDocs(q);
+        data = querySnapshot.docs.map(doc => doc.data());
+      } catch (fsErr) {
+        // Graceful fallback on permission errors
+      }
+
+      if (data.length === 0) {
+        const local = localStorage.getItem('nckprep_local_history');
+        if (local) {
+          try { data = JSON.parse(local); } catch(e) {}
+        }
+      }
       
-      const data = querySnapshot.docs.map(doc => doc.data());
       setHistory(data);
       
       const { streak: realStreak } = calculateUserStreak(data);
@@ -105,7 +117,7 @@ export default function StudentDashboard() {
       setEvaluatedBadges(evaluated);
 
     } catch (error) {
-      console.error("Error fetching user data", error);
+      // Graceful error handling
     }
   };
 

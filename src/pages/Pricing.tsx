@@ -188,7 +188,26 @@ export default function Pricing() {
     try {
       const userEmail = auth.currentUser.email || auth.currentUser.uid;
       const kesAmount = selectedPlan.usdPrice * KES_RATE;
-      const refCode = mpesaRef || `MP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      let refCode = mpesaRef;
+
+      if (mpesaMode === 'stk') {
+        const res = await fetch('/api/payment/stkpush', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: mpesaPhone,
+            amount: kesAmount,
+            planName: selectedPlan.name
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Payplus STK Push failed');
+        }
+        refCode = data.transactionRef || `PP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      } else {
+        refCode = mpesaRef || `PP-MAN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      }
 
       await addDoc(collection(db, 'payments'), {
         user: userEmail,
@@ -199,7 +218,7 @@ export default function Pricing() {
         amountUsd: selectedPlan.usdPrice,
         amountKes: kesAmount,
         paidCurrency: 'KES',
-        paymentMethod: 'M-Pesa Express',
+        paymentMethod: 'Payplus M-Pesa',
         mpesaPhone: mpesaPhone || 'N/A',
         mpesaRef: refCode.toUpperCase(),
         status: mpesaMode === 'stk' ? 'Completed' : 'Pending Verification',
@@ -208,9 +227,9 @@ export default function Pricing() {
       });
 
       if (mpesaMode === 'stk') {
-        setPaymentSuccessMessage(`STK Push prompt sent to ${mpesaPhone || 'your phone'}. Payment verified for Ksh ${kesAmount.toLocaleString()}!`);
+        setPaymentSuccessMessage(`Payplus M-Pesa STK push sent to ${mpesaPhone || 'your phone'}. Ref: ${refCode.toUpperCase()} (Ksh ${kesAmount.toLocaleString()})!`);
       } else {
-        setPaymentSuccessMessage(`M-Pesa reference ${refCode.toUpperCase()} submitted for Ksh ${kesAmount.toLocaleString()}. Access granted upon verification.`);
+        setPaymentSuccessMessage(`Payplus M-Pesa reference ${refCode.toUpperCase()} submitted for Ksh ${kesAmount.toLocaleString()}. Access granted upon verification.`);
       }
 
       setTimeout(() => {
@@ -218,9 +237,9 @@ export default function Pricing() {
         setIsSubmitting(false);
         navigate('/dashboard/courses');
       }, 2500);
-    } catch (error) {
-      console.error('M-Pesa payment error:', error);
-      alert('Error processing M-Pesa payment.');
+    } catch (error: any) {
+      console.error('Payplus M-Pesa payment error:', error);
+      alert(error.message || 'Error processing Payplus M-Pesa payment.');
       setIsSubmitting(false);
     }
   };
@@ -472,7 +491,7 @@ export default function Pricing() {
                 }`}
               >
                 <Smartphone className="w-4 h-4" />
-                <span>M-Pesa (Kenya KES)</span>
+                <span>Payplus M-Pesa (Kenya KES)</span>
               </button>
             </div>
 

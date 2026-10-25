@@ -136,18 +136,22 @@ export function NckPreparationRoadmap() {
         }
 
         if (auth.currentUser) {
-          const docRef = doc(db, 'userRoadmap', auth.currentUser.uid);
-          const snap = await getDoc(docRef);
-          if (snap.exists()) {
-            const data = snap.data();
-            if (data && Array.isArray(data.completed)) {
-              setCompletedMilestones(data.completed);
-              localStorage.setItem('nckprep_roadmap_progress', JSON.stringify(data.completed));
+          try {
+            const docRef = doc(db, 'userRoadmap', auth.currentUser.uid);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+              const data = snap.data();
+              if (data && Array.isArray(data.completed)) {
+                setCompletedMilestones(data.completed);
+                localStorage.setItem('nckprep_roadmap_progress', JSON.stringify(data.completed));
+              }
             }
+          } catch (fsErr) {
+            // Graceful fallback to local cache on permission issues
           }
         }
       } catch (err) {
-        console.error("Error loading roadmap progress", err);
+        // Fallback
       } finally {
         setLoading(false);
       }
@@ -174,7 +178,7 @@ export function NckPreparationRoadmap() {
           updatedAt: new Date().toISOString()
         }, { merge: true });
       } catch (err) {
-        console.error("Error saving roadmap to Firestore", err);
+        // Graceful fallback
       }
     }
   };

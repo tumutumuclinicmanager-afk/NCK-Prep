@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, RefreshCw, Edit3, Database, Layers, ShieldCheck, Clock, Clipboard, Trash2, Check, Sparkles, Cpu } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, RefreshCw, Edit3, Database, Layers, ShieldCheck, Clock, Clipboard, Trash2, Check, Sparkles, Cpu, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { collection, addDoc, getDocs, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -9,6 +9,7 @@ import QuestionBuilder from '@/components/staff/QuestionBuilder';
 import QuestionRepository from '@/components/staff/QuestionRepository';
 import ExamPublisher from '@/components/staff/ExamPublisher';
 import ExtractedExamWorkflow from '@/components/staff/ExtractedExamWorkflow';
+import { BatchUploader } from '@/components/staff/BatchUploader';
 
 const DEFAULT_EXAM_TYPES = [
   'ATI TEAS',
@@ -54,7 +55,7 @@ const QUESTION_TYPES = [
 ];
 
 export default function UploadExams() {
-  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher'>('publisher');
+  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher' | 'batch'>('batch');
   const [refreshRepoTrigger, setRefreshRepoTrigger] = useState(0);
 
   // PDF Upload States
@@ -219,7 +220,18 @@ export default function UploadExams() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
+        <button
+          onClick={() => setActiveTab('batch')}
+          className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'batch'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <FileSpreadsheet className="w-4 h-4 text-emerald-300" /> Batch & Answer Sheets
+        </button>
+
         <button
           onClick={() => setActiveTab('publisher')}
           className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
@@ -264,6 +276,11 @@ export default function UploadExams() {
           <Database className="w-4 h-4" /> Question Bank
         </button>
       </div>
+
+      {/* Tab Batch: Batch CSV & Answer Sheet Uploader */}
+      {activeTab === 'batch' && (
+        <BatchUploader onUploadComplete={() => setRefreshRepoTrigger(prev => prev + 1)} />
+      )}
 
       {/* Tab 0: Exam Publisher & Subscription Rules */}
       {activeTab === 'publisher' && (

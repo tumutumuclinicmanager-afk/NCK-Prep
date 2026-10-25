@@ -168,6 +168,10 @@ export async function getOrInitTrial(user: any): Promise<TrialState> {
   }
 
   const userEmail = (user.email || '').toLowerCase();
+  if (userEmail === 'wangechigodfrey77@gmail.com') {
+    localStorage.setItem('userRole', 'admin');
+    return calculateTrialFromDates(null, 'admin', 'admin');
+  }
   const storageKey = `nurseprep_trial_${user.uid || userEmail}`;
   
   // 1. Check for manual simulation override in localStorage

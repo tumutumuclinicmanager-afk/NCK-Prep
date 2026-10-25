@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, Home, Settings, GraduationCap, LayoutDashboard, Brain, BrainCircuit, Library, FileText, Bell, LogOut, ChevronRight, Menu, X, Video, MessageSquare, Edit3, Database, Award, Server, BarChart3, Clock, Sparkles, ShieldAlert, RotateCcw, Eye, Maximize2 } from 'lucide-react';
+import { BookOpen, Home, Settings, GraduationCap, LayoutDashboard, Brain, BrainCircuit, Library, FileText, Bell, LogOut, ChevronRight, Menu, X, Video, MessageSquare, Edit3, Database, Award, Server, BarChart3, Clock, Sparkles, ShieldAlert, RotateCcw, Eye, Maximize2, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { auth, signOut, onAuthStateChanged } from '@/lib/firebase';
@@ -90,6 +90,7 @@ export function DashboardLayout({ userRole = 'student' }: { userRole?: 'student'
       { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses' },
       { name: 'Exam Bank', icon: BookOpen, path: '/dashboard/exams' },
       { name: 'Practice Exam Generator', icon: Brain, path: '/dashboard/generator' },
+      { name: 'Leaderboard', icon: Trophy, path: '/dashboard/leaderboard' },
       { name: 'Performance', icon: FileText, path: '/dashboard/performance' },
       { name: 'Clinical Library', icon: Library, path: '/dashboard/library' },
     ];
