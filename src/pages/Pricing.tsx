@@ -22,9 +22,9 @@ export interface PlanItem {
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const [currency, setCurrency] = useState<'USD' | 'KES'>('USD');
+  const [currency, setCurrency] = useState<'KES'>('KES');
   const [selectedPlan, setSelectedPlan] = useState<PlanItem | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mpesa'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'mpesa'>('mpesa');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<string | null>(null);
@@ -46,88 +46,35 @@ export default function Pricing() {
 
   const plans: PlanItem[] = [
     {
-      id: 'basic-silver',
-      name: 'Basic/Silver Plan',
-      subtitle: 'One-time payment, no monthly fees!',
-      usdPrice: 64,
-      durationDays: 30,
-      durationLabel: '$64/ 30 Days',
-      headerBg: 'bg-slate-200 text-slate-800',
-      badgeBg: 'bg-slate-300 text-slate-900',
-      badgeText: 'SILVER TIER',
-      features: [
-        'Questions that mirror the actual NCK Registered Nurse (RN) FQE exam.',
-        '1 NCK Licensure Predictor Adaptive Test',
-        'Cheat sheet for every question.',
-        'Video review for every question.',
-        'Peer performance comparison.',
-        '+2500 questions, +1k ngn questions.',
-        '6 Silver Readiness Assessments Tests.',
-        'Free Qbank Reset (If you\'re renewing your subscription)',
-        'Multiple NCK Registered Nurse (RN) FQE CAT Mock Tests.',
-        'Exam interface that mimics real exam.',
-        'Accurate Pass Prediction.'
-      ]
-    },
-    {
-      id: 'sure-pass-gold',
-      name: 'Sure Pass/Gold Plan',
-      subtitle: 'One-time payment, no monthly fees!',
-      usdPrice: 128,
+      id: 'nck-complete-pass',
+      name: 'NCK Licensure Complete All-Inclusive Pass',
+      subtitle: 'One-time payment, no monthly fees! Instant unlimited access via M-Pesa.',
+      usdPrice: 23,
       durationDays: 90,
-      durationLabel: '$128/ 90 Days',
+      durationLabel: 'Ksh 3,000 / Full Access',
       popular: true,
       guaranteedPassBadge: true,
-      headerBg: 'bg-amber-400 text-amber-950',
-      badgeBg: 'bg-amber-500 text-white',
-      badgeText: 'BEST VALUE - GUARANTEED PASS',
-      features: [
-        'Guaranteed Pass',
-        '2 NCK Licensure Predictor Adaptive Tests',
-        'Questions that mirror the actual NCK Registered Nurse (RN) FQE exam.',
-        'Cheat sheet for every question.',
-        'Video review for every question.',
-        'Peer performance comparison.',
-        '+4000 questions, +2000 ngn questions.',
-        '6 Silver Readiness Assessments Tests.',
-        '5 Gold Readiness Assessments Tests.',
-        'Free Qbank Reset',
-        'Multiple NCK Registered Nurse (RN) FQE CAT Mock Tests.',
-        'Exam interface that mimics real exam.',
-        'Accurate Pass Prediction.',
-        'Live Webinars Every Week.'
-      ]
-    },
-    {
-      id: 'master-platinum',
-      name: 'Master Pass / Unlimited Plan',
-      subtitle: 'Complete 180-Day Licensure Access & Mentorship',
-      usdPrice: 199,
-      durationDays: 180,
-      durationLabel: '$199/ 180 Days',
-      headerBg: 'bg-blue-600 text-white',
-      badgeBg: 'bg-blue-700 text-white',
-      badgeText: 'FULL ACCESS + TUTORING',
+      headerBg: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white',
+      badgeBg: 'bg-amber-400 text-slate-950',
+      badgeText: 'KSH 3,000 - GUARANTEED PASS',
       features: [
         'Guaranteed Pass Warranty',
-        '1-on-1 Nurse Educator Consultation Session',
-        'Full NCK Registered Nurse (RN) FQE & NCK Community Health Nurse Bank Unlocks',
-        'ATI TEAS 7 & HESI A2 Qbank Access Included',
-        'Unlimited NCK Licensure Predictor Adaptive Tests',
-        '+6000 NCK Licensure Questions + 2500 NGN Case Studies',
-        'All Silver & Gold Readiness Assessments',
-        'Unlimited Qbank Resets & Peer Analytics',
-        'Video Explanations & Weekly Live Webinars'
+        'Full access to all NCK Registered Nurse (RN) FQE & NGN question banks.',
+        'NCK Licensure Predictor Adaptive Tests',
+        'Cheat sheet for every single question.',
+        'Video review & explanations for every question.',
+        'Peer performance comparison & analytics.',
+        '+6,000 NCK Licensure practice questions & case studies.',
+        'Readiness Assessments & Mock Tests.',
+        'Free Qbank Reset & Unlimited Practice',
+        'Exam interface that mimics the real NCK exam.',
+        'Live Webinars Every Week & Educator Support.'
       ]
     }
   ];
 
   const formatPrice = (usd: number) => {
-    if (currency === 'KES') {
-      const kes = Math.round(usd * KES_RATE);
-      return `Ksh ${kes.toLocaleString()}`;
-    }
-    return `$${usd}`;
+    return `Ksh 3,000`;
   };
 
   const handleSelectPlan = (plan: PlanItem) => {
@@ -286,38 +233,10 @@ export default function Pricing() {
             One-time payment, no monthly fees! Guaranteed pass warranty for US & International Nursing Students.
           </p>
 
-          {/* Currency Switcher */}
-          <div className="flex items-center justify-center pt-2">
-            <div className="bg-white border border-slate-200 rounded-xl p-1 shadow-xs inline-flex items-center gap-1">
-              <span className="text-xs font-bold text-slate-500 px-2 flex items-center gap-1">
-                <Globe className="w-3.5 h-3.5" /> Market Currency:
-              </span>
-              <button
-                onClick={() => setCurrency('USD')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all ${
-                  currency === 'USD'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                🇺🇸 USD ($)
-              </button>
-              <button
-                onClick={() => setCurrency('KES')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all ${
-                  currency === 'KES'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                🇰🇪 KES (M-Pesa)
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Pricing Cards Grid */}
-        <div id="pricing-grid" className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-4">
+        <div id="pricing-grid" className="max-w-xl mx-auto pt-4">
           {plans.map((plan) => (
             <div
               key={plan.id}
