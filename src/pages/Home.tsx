@@ -86,7 +86,7 @@ export default function Home() {
 
             {/* Subheadline */}
             <p className="text-base sm:text-lg md:text-xl text-slate-200 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow">
-              Comprehensive study materials, intelligent quiz generation, and realistic mock exams for <strong>NCK Registered Nurse (RN) FQE/PN</strong>, <strong>ATI TEAS</strong>, <strong>HESI A2</strong>, and more.
+              Comprehensive study materials, intelligent quiz generation, and realistic mock exams tailored specifically for the <strong>Nursing Council of Kenya (NCK) Licensure & FQE</strong> examinations.
             </p>
 
             {/* Centered Call-to-Action Buttons with Framer-Motion Pulse Animation */}
@@ -199,10 +199,10 @@ export default function Home() {
             {[
               { name: 'NCK Registered Nurse (RN) FQE', count: '12,500+ Questions', color: 'bg-blue-100 text-blue-700' },
               { name: 'NCK Community Health Nurse', count: '8,200+ Questions', color: 'bg-indigo-100 text-indigo-700' },
-              { name: 'TEAS 7', count: '5,400+ Questions', color: 'bg-purple-100 text-purple-700' },
-              { name: 'HESI A2', count: '6,100+ Questions', color: 'bg-emerald-100 text-emerald-700' },
-              { name: 'NCK', count: '3,000+ Questions', color: 'bg-rose-100 text-rose-700' },
-              { name: 'ATI TEAS', count: '4,500+ Questions', color: 'bg-amber-100 text-amber-700' }
+              { name: 'NCK Midwifery FQE', count: '6,400+ Questions', color: 'bg-emerald-100 text-emerald-700' },
+              { name: 'NCK Clinical Nursing Assessment', count: '5,000+ Questions', color: 'bg-purple-100 text-purple-700' },
+              { name: 'NCK Licensure Predictor Mock', count: '3,500+ Questions', color: 'bg-amber-100 text-amber-700' },
+              { name: 'NCK Comprehensive Paper', count: '4,000+ Questions', color: 'bg-teal-100 text-teal-700' }
             ].map((exam) => (
               <Card 
                 key={exam.name} 
