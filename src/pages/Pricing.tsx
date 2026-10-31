@@ -134,7 +134,7 @@ export default function Pricing() {
     setIsSubmitting(true);
     try {
       const userEmail = auth.currentUser.email || auth.currentUser.uid;
-      const kesAmount = selectedPlan.usdPrice * KES_RATE;
+      const kesAmount = 3000;
       let refCode = mpesaRef;
 
       if (mpesaMode === 'stk') {
@@ -385,33 +385,13 @@ export default function Pricing() {
               </button>
             </div>
 
-            {/* Payment Method Switcher Tabs */}
-            <div className="p-4 bg-slate-100 border-b border-slate-200 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('stripe')}
-                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
-                  paymentMethod === 'stripe'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
-                }`}
-              >
-                <CreditCard className="w-4 h-4" />
-                <span>Card / Stripe (US & Global)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('mpesa')}
-                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
-                  paymentMethod === 'mpesa'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>Payplus M-Pesa (Kenya KES)</span>
-              </button>
+            {/* Payment Header */}
+            <div className="p-4 bg-emerald-600 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5" />
+                <span className="font-black text-sm">Payplus M-Pesa Express Checkout</span>
+              </div>
+              <span className="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-bold">Ksh 3,000</span>
             </div>
 
             {/* Success Message Banner */}
@@ -426,106 +406,13 @@ export default function Pricing() {
                 </p>
                 <p className="text-[11px] font-bold text-blue-600">Redirecting to Student Dashboard...</p>
               </div>
-            ) : paymentMethod === 'stripe' ? (
-              /* Stripe Credit Card Form */
-              <form onSubmit={handleStripeCheckout} className="p-6 space-y-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
-                  <span className="text-slate-600 font-medium">Total Charge:</span>
-                  <span className="text-slate-900 font-extrabold text-sm">${selectedPlan.usdPrice}.00 USD</span>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Cardholder Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    placeholder="e.g. Sarah Miller BSN"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-600"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Card Number (Stripe Secured)</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      maxLength={19}
-                      value={cardNumber}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
-                        setCardNumber(val);
-                      }}
-                      placeholder="4532 0000 0000 8821"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-blue-600"
-                    />
-                    <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Expiry</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-blue-600 text-center"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">CVC</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="123"
-                      maxLength={4}
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-blue-600 text-center"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Zip Code</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="90210"
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-blue-600 text-center"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                  <span className="flex items-center gap-1 font-semibold">
-                    <Lock className="w-3.5 h-3.5 text-blue-600" /> 256-Bit Encrypted via Stripe
-                  </span>
-                  <span className="font-bold text-slate-700">Instant Access</span>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button type="button" variant="outline" className="flex-1" onClick={() => setShowPaymentModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold">
-                    {isSubmitting ? 'Processing Stripe...' : `Pay $${selectedPlan.usdPrice} Now`}
-                  </Button>
-                </div>
-              </form>
             ) : (
               /* M-Pesa Kenyan Payment Form */
               <form onSubmit={handleMpesaCheckout} className="p-6 space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs">
-                  <span className="text-emerald-900 font-medium">M-Pesa Equivalent (1 USD = 130 KES):</span>
+                  <span className="text-emerald-900 font-medium">Total Charge (Complete Access):</span>
                   <span className="text-emerald-950 font-black text-sm">
-                    Ksh {(selectedPlan.usdPrice * KES_RATE).toLocaleString()}
+                    Ksh 3,000
                   </span>
                 </div>
 
