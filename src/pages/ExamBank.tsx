@@ -693,14 +693,14 @@ export default function ExamBank() {
   const [isAdminUser, setIsAdminUser] = useState<boolean>(() => {
     const role = localStorage.getItem('userRole');
     const email = auth.currentUser?.email || '';
-    return role === 'admin' || role === 'staff' || email === 'wangechigodfrey77@gmail.com' || window.location.search.includes('admin') || localStorage.getItem('nckprep_test_admin_mode') === 'true';
+    return role === 'admin' || role === 'staff' || email === 'wangechigodfrey77@gmail.com' || email === 'testadmin1@nckprep.com' || window.location.search.includes('admin') || localStorage.getItem('nckprep_test_admin_mode') === 'true';
   });
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
         const role = localStorage.getItem('userRole');
-        if (role === 'admin' || role === 'staff' || user.email === 'wangechigodfrey77@gmail.com') {
+        if (role === 'admin' || role === 'staff' || user.email === 'wangechigodfrey77@gmail.com' || user.email === 'testadmin1@nckprep.com') {
           setIsAdminUser(true);
         }
       }

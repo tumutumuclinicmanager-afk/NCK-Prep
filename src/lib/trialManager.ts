@@ -168,7 +168,7 @@ export async function getOrInitTrial(user: any): Promise<TrialState> {
   }
 
   const userEmail = (user.email || '').toLowerCase();
-  if (userEmail === 'wangechigodfrey77@gmail.com') {
+  if (userEmail === 'wangechigodfrey77@gmail.com' || userEmail === 'testadmin1@nckprep.com') {
     localStorage.setItem('userRole', 'admin');
     return calculateTrialFromDates(null, 'admin', 'admin');
   }

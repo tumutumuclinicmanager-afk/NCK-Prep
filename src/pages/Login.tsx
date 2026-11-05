@@ -64,7 +64,7 @@ export default function Login() {
         isDbUser = true;
         
         const role = userDoc.role || 'Student';
-        if (role.toLowerCase().includes('admin') || normalizedEmail === 'wangechigodfrey77@gmail.com') {
+        if (role.toLowerCase().includes('admin') || normalizedEmail === 'wangechigodfrey77@gmail.com' || normalizedEmail === 'testadmin1@nckprep.com') {
           userRole = 'admin';
         } else if (role.toLowerCase().includes('staff') || role.toLowerCase().includes('lecturer')) {
           userRole = 'staff';
@@ -73,28 +73,31 @@ export default function Login() {
         }
       } else {
         // Fallback for default system admin accounts
-        if (normalizedEmail === 'admin@nckprep.com' || normalizedEmail === 'wangechigodfrey77@gmail.com') {
+        if (normalizedEmail === 'admin@nckprep.com' || normalizedEmail === 'wangechigodfrey77@gmail.com' || normalizedEmail === 'testadmin1@nckprep.com') {
           userRole = 'admin';
           isDbUser = true;
-          dbPassword = password || 'password123';
-          dbName = 'Godfrey Wangechi';
+          dbPassword = normalizedEmail === 'testadmin1@nckprep.com' ? 'test123' : (password || 'password123');
+          dbName = normalizedEmail === 'testadmin1@nckprep.com' ? 'Test Administrator' : 'Godfrey Wangechi';
         } else {
           userRole = 'student';
         }
       }
       
       // If user is from database/admin list and has a password recorded
-      if (isDbUser && dbPassword && normalizedEmail !== 'wangechigodfrey77@gmail.com') {
+      const isMasterAdmin = normalizedEmail === 'wangechigodfrey77@gmail.com' || normalizedEmail === 'testadmin1@nckprep.com';
+      if (isDbUser && dbPassword && !isMasterAdmin) {
         if (password !== dbPassword) {
           throw new Error('Invalid email or password.');
         }
+      } else if (normalizedEmail === 'testadmin1@nckprep.com' && password !== 'test123' && password !== dbPassword) {
+        throw new Error('Invalid email or password.');
       }
       
       // Perform Auth Sign In with fallback auto-registration and password recovery
       try {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       } catch (authErr: any) {
-        if (normalizedEmail === 'wangechigodfrey77@gmail.com') {
+        if (isMasterAdmin) {
           // Master admin bypasses auth password mismatch entirely
           try {
             await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -158,7 +161,7 @@ export default function Login() {
           userRole = 'student';
         }
       } else {
-        if (userEmail === 'admin@nckprep.com' || userEmail === 'wangechigodfrey77@gmail.com') {
+        if (userEmail === 'admin@nckprep.com' || userEmail === 'wangechigodfrey77@gmail.com' || userEmail === 'testadmin1@nckprep.com') {
           userRole = 'admin';
         } else {
           userRole = 'student';

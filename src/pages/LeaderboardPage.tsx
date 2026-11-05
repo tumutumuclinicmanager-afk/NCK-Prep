@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
             userMap.set(s.email, {
               email: s.email,
               name: s.name,
-              items: [{ totalQuestions: s.qCount, score: s.avgSchool || s.avgScore }]
+              items: [{ totalQuestions: s.qCount, score: s.avgScore }]
             });
           }
         });
@@ -100,7 +100,7 @@ export default function LeaderboardPage() {
             xp: Math.max(xp, 1200),
             streak: statsObj.streak,
             questionsAnswered: questionsCount || 85,
-            averageScore,
+            averageScore: avgScore,
             badgesCount: Math.max(unlockedCount, 4)
           });
         });

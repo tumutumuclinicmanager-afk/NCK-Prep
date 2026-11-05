@@ -27,7 +27,7 @@ export default function Register() {
       let role = 'Student';
       let userRole = 'student';
       
-      if (userEmail === 'admin@nckprep.com' || userEmail === 'wangechigodfrey77@gmail.com') {
+      if (userEmail === 'admin@nckprep.com' || userEmail === 'wangechigodfrey77@gmail.com' || userEmail === 'testadmin1@nckprep.com') {
         role = 'Admin';
         userRole = 'admin';
       }
