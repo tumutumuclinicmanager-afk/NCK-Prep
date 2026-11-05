@@ -1085,6 +1085,37 @@ export default function ExamBank() {
         });
       }
 
+       // Also load local storage custom exams
+       try {
+         const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+         localExams.forEach((data: any) => {
+           const cat = normalizeExamCategory(data.category);
+           const qList = data.questions || [];
+           qList.forEach((q: any) => examDocsQuestions.push({ ...q, examMode: cat }));
+           const reqP = (data.requiredPlan || 'free').toLowerCase() as any;
+           dbExams.push({
+             id: data.id || `local-${Math.random()}`,
+             title: data.title || 'Custom Uploaded Exam',
+             category: cat,
+             domain: data.domain || 'Medical-Surgical Nursing',
+             price: 'Free Access',
+             numericPrice: 0,
+             questionCount: qList.length,
+             durationMinutes: Math.max(15, qList.length * 2),
+             difficulty: 'Medium',
+             isPremium: false,
+             features: ['Lecturer Authored', 'Verified Questions', 'Instant Feedback'],
+             icon: cat === 'NCK FQE' || cat === 'NCK Registered Nurse (RN) FQE' ? Brain : cat === 'HESI' ? HeartPulse : cat === 'GED' ? BookOpen : Activity,
+             color: 'text-blue-600',
+             bg: 'bg-blue-50',
+             questions: qList,
+             requiredPlan: reqP,
+             questionLimits: data.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
+             isPublished: true
+           });
+         });
+       } catch (e) {}
+
       // 2. Fetch Firestore individual questions collection
       const questionsSnap = await getDocs(query(collection(db, 'questions')));
       const dbQuestionsList: any[] = [];
@@ -1097,6 +1128,14 @@ export default function ExamBank() {
           });
         });
       }
+
+      // Also load local storage custom questions
+      try {
+        const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+        localQuestions.forEach((q: any) => {
+          dbQuestionsList.push(q);
+        });
+      } catch (e) {}
 
       setDbQuestionsCount(dbQuestionsList.length + examDocsQuestions.length);
 

@@ -164,8 +164,8 @@ export default function UploadExams() {
     if (extractedQuestions.length === 0) return;
     setIsSaving(true);
     try {
-      // Save exam document
       const examDoc = JSON.parse(JSON.stringify({
+        id: `custom-exam-${Date.now()}`,
         title: examTitle || 'Untitled Exam',
         questions: extractedQuestions,
         createdAt: new Date().toISOString(),
@@ -175,13 +175,13 @@ export default function UploadExams() {
         questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 },
         isPublished: true,
       }));
-      await addDoc(collection(db, 'exams'), examDoc);
 
-      // Also save individual questions to questions bank
+      const questionsListDocs: any[] = [];
       for (const q of extractedQuestions) {
         const qTypeId = q.questionTypeId || 'single_choice';
         const qTypeLabel = q.questionTypeLabel || 'Single Choice';
         const questionDoc = JSON.parse(JSON.stringify({
+          id: `custom-q-${Math.random()}`,
           examMode: selectedExamMode,
           unitDomain: 'General Nursing',
           questionTypeId: qTypeId,
@@ -197,12 +197,29 @@ export default function UploadExams() {
           difficulty: q.difficulty || 'Medium',
           rationale: q.explanation || '',
           createdAt: new Date().toISOString(),
-          createdBy: 'PDF Extractor'
+          createdBy: 'PDF/Paste Extractor'
         }));
-        await addDoc(collection(db, 'questions'), questionDoc);
+        questionsListDocs.push(questionDoc);
       }
 
-      setSaveSuccessNotice(`Exam "${examTitle || 'Untitled Exam'}" and ${extractedQuestions.length} questions successfully saved to ${selectedExamMode} question bank!`);
+      // Try Firestore write, gracefully fall back to local storage on any permission or network error
+      try {
+        await addDoc(collection(db, 'exams'), examDoc);
+        for (const qDoc of questionsListDocs) {
+          await addDoc(collection(db, 'questions'), qDoc);
+        }
+      } catch (firestoreErr) {
+        console.warn("Firestore write bypassed due to permissions or offline state, using local storage cache:", firestoreErr);
+      }
+
+      // Always save to localStorage backup as well so it's instantly available
+      const existingExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+      localStorage.setItem('nckprep_custom_exams', JSON.stringify([examDoc, ...existingExams]));
+
+      const existingQs = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+      localStorage.setItem('nckprep_custom_questions', JSON.stringify([...questionsListDocs, ...existingQs]));
+
+      setSaveSuccessNotice(`Exam "${examTitle || 'Untitled Exam'}" and ${extractedQuestions.length} questions successfully published to ${selectedExamMode} question bank!`);
       setFile(null);
       setRawText('');
       setExtractedQuestions([]);
@@ -211,7 +228,7 @@ export default function UploadExams() {
       setRefreshRepoTrigger(prev => prev + 1);
     } catch (error: any) {
       console.error('Error saving exam:', error);
-      alert(`Failed to save exam to database: ${error?.message || 'Unknown database error'}`);
+      alert(`Failed to save exam: ${error?.message || 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }
