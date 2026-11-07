@@ -1178,8 +1178,13 @@ export default function ExamBank() {
         ex => !deletedIds.includes(ex.id)
       );
 
-      // Sort exams so commonly used exams (ATI TEAS, HESI A2, NCK FQE, Examplify) come first
+      // Sort exams so custom uploaded/lecturer exams appear FIRST, followed by popular categories
       combinedExams.sort((a, b) => {
+        const isCustomA = a.id.startsWith('custom-') || a.id.startsWith('batch-8') || a.id.startsWith('mock-1') || a.id.startsWith('local-') || !defaultExamBundles.some(d => d.id === a.id);
+        const isCustomB = b.id.startsWith('custom-') || b.id.startsWith('batch-8') || b.id.startsWith('mock-1') || b.id.startsWith('local-') || !defaultExamBundles.some(d => d.id === b.id);
+        if (isCustomA && !isCustomB) return -1;
+        if (!isCustomA && isCustomB) return 1;
+
         const catA = a.category || '';
         const catB = b.category || '';
         const idxA = POPULAR_EXAM_ORDER.indexOf(catA);

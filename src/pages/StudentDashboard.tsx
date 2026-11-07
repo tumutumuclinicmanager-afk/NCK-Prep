@@ -286,26 +286,23 @@ export default function StudentDashboard() {
         ))}
       </div>
 
-      {/* Preparation Roadmap Component */}
-      <NckPreparationRoadmap />
-
-      {/* Exam Bank Snapshot - Direct Navigation to HESI, ATI TEAS, NCK FQE, and Examplify */}
+      {/* Exam Bank Snapshot - Direct Navigation to Uploaded Exams & HESI, ATI TEAS, NCK FQE */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-black tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                Exam Bank Snapshot
+                Uploaded & Live Exam Banks
               </span>
               <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
-                • 4 Primary Nursing Curricula
+                • Instant Access to Lecturer Uploads & Mocks
               </span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mt-1">
               Select Your Exam Category
             </h2>
             <p className="text-xs md:text-sm text-slate-500 mt-0.5">
-              Instant one-click access into HESI, ATI TEAS, NCK FQE, and Examplify question repositories and simulated exams.
+              Access your newly uploaded NCK Mock 1, Paper 2 Batch 8, HESI, ATI TEAS, NCK FQE, and Examplify question banks instantly.
             </p>
           </div>
 
