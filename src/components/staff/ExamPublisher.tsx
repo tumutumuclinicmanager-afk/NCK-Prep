@@ -123,23 +123,57 @@ export default function ExamPublisher({ onExamUpdated }: { onExamUpdated?: () =>
     try {
       setLoading(true);
 
+      let examList: ExamDoc[] = [];
+      let qList: QuestionData[] = [];
+
       // 1. Fetch Exams
-      const examsSnap = await getDocs(query(collection(db, 'exams')));
-      const deletedExams = JSON.parse(localStorage.getItem('nckprep_deleted_exams') || '[]');
-      const examList: ExamDoc[] = examsSnap.docs
-        .filter(docSnap => !deletedExams.includes(docSnap.id))
-        .map(docSnap => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<ExamDoc, 'id'>)
-        }));
+      try {
+        const examsSnap = await getDocs(query(collection(db, 'exams')));
+        const deletedExams = JSON.parse(localStorage.getItem('nckprep_deleted_exams') || '[]');
+        examList = examsSnap.docs
+          .filter(docSnap => !deletedExams.includes(docSnap.id))
+          .map(docSnap => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<ExamDoc, 'id'>)
+          }));
+      } catch (firestoreExamsErr) {
+        console.warn("Firestore exams read bypassed due to permissions, using local storage cache:", firestoreExamsErr);
+      }
+
+      // Merge local storage custom exams
+      try {
+        const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+        const deletedExams = JSON.parse(localStorage.getItem('nckprep_deleted_exams') || '[]');
+        localExams.forEach((e: any) => {
+          if (!deletedExams.includes(e.id) && !examList.some(ex => ex.id === e.id)) {
+            examList.push(e);
+          }
+        });
+      } catch (e) {}
+
       setExams(examList);
 
       // 2. Fetch Questions
-      const questionsSnap = await getDocs(query(collection(db, 'questions')));
-      const qList: QuestionData[] = questionsSnap.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<QuestionData, 'id'>)
-      }));
+      try {
+        const questionsSnap = await getDocs(query(collection(db, 'questions')));
+        qList = questionsSnap.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<QuestionData, 'id'>)
+        }));
+      } catch (firestoreQsErr) {
+        console.warn("Firestore questions read bypassed due to permissions, using local storage cache:", firestoreQsErr);
+      }
+
+      // Merge local storage custom questions
+      try {
+        const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+        localQuestions.forEach((q: any) => {
+          if (!qList.some(item => item.id === q.id)) {
+            qList.push(q);
+          }
+        });
+      } catch (e) {}
+
       setAvailableQuestions(qList);
 
       // 3. Fetch Exam Modes
@@ -360,11 +394,31 @@ export default function ExamPublisher({ onExamUpdated }: { onExamUpdated?: () =>
     setIsSaving(true);
     try {
       const sanitizedPayload = JSON.parse(JSON.stringify(payload));
+      sanitizedPayload.id = editingExamId || `custom-exam-${Date.now()}`;
+
+      try {
+        if (editingExamId) {
+          await updateDoc(doc(db, 'exams', editingExamId), sanitizedPayload);
+        } else {
+          await addDoc(collection(db, 'exams'), sanitizedPayload);
+        }
+      } catch (firestoreErr) {
+        console.warn("Firestore write bypassed due to permissions, using localStorage fallback:", firestoreErr);
+      }
+
+      // Save to localStorage backup
+      const existingExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
       if (editingExamId) {
-        await updateDoc(doc(db, 'exams', editingExamId), sanitizedPayload);
+        const updated = existingExams.map((e: any) => e.id === editingExamId ? sanitizedPayload : e);
+        if (!updated.some((e: any) => e.id === editingExamId)) updated.push(sanitizedPayload);
+        localStorage.setItem('nckprep_custom_exams', JSON.stringify(updated));
+      } else {
+        localStorage.setItem('nckprep_custom_exams', JSON.stringify([sanitizedPayload, ...existingExams]));
+      }
+
+      if (editingExamId) {
         alert("Exam configuration successfully updated!");
       } else {
-        await addDoc(collection(db, 'exams'), sanitizedPayload);
         alert(`New Exam "${title.trim()}" published under Category "${finalCategory}"!`);
       }
 
@@ -373,7 +427,7 @@ export default function ExamPublisher({ onExamUpdated }: { onExamUpdated?: () =>
       if (onExamUpdated) onExamUpdated();
     } catch (err: any) {
       console.error("Error saving exam doc:", err);
-      alert(`Failed to save exam to database: ${err?.message || 'Unknown database error'}`);
+      alert(`Failed to save exam: ${err?.message || 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }

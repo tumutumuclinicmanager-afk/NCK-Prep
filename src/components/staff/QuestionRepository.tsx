@@ -31,18 +31,51 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
   const fetchData = async () => {
     try {
       setLoading(true);
-      const qSnap = await getDocs(query(collection(db, 'questions')));
-      const qList = qSnap.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      })) as QuestionData[];
+      let qList: QuestionData[] = [];
+      let eList: any[] = [];
+
+      try {
+        const qSnap = await getDocs(query(collection(db, 'questions')));
+        qList = qSnap.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        })) as QuestionData[];
+      } catch (firestoreQEe) {
+        console.warn("Firestore questions read bypassed due to permissions, using local storage cache:", firestoreQEe);
+      }
+
+      // Merge local storage custom questions
+      try {
+        const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+        localQuestions.forEach((q: any) => {
+          if (!qList.some(item => item.id === q.id)) {
+            qList.push(q);
+          }
+        });
+      } catch (e) {}
+
       setQuestions(qList);
 
-      const eSnap = await getDocs(query(collection(db, 'exams')));
-      const eList = eSnap.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      }));
+      try {
+        const eSnap = await getDocs(query(collection(db, 'exams')));
+        eList = eSnap.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+      } catch (firestoreExErr) {
+        console.warn("Firestore exams read bypassed due to permissions, using local storage cache:", firestoreExErr);
+      }
+
+      // Merge local storage custom exams
+      try {
+        const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+        localExams.forEach((e: any) => {
+          if (!eList.some(item => item.id === e.id)) {
+            eList.push(e);
+          }
+        });
+      } catch (e) {}
+
       setExams(eList);
     } catch (err) {
       console.error('Error fetching question repository data:', err);

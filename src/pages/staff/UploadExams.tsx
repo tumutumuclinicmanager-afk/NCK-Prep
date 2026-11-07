@@ -10,6 +10,7 @@ import QuestionRepository from '@/components/staff/QuestionRepository';
 import ExamPublisher from '@/components/staff/ExamPublisher';
 import ExtractedExamWorkflow from '@/components/staff/ExtractedExamWorkflow';
 import { BatchUploader } from '@/components/staff/BatchUploader';
+import InjectBatch8Exam from '@/components/staff/InjectBatch8Exam';
 
 const DEFAULT_EXAM_TYPES = [
   'ATI TEAS',
@@ -55,7 +56,7 @@ const QUESTION_TYPES = [
 ];
 
 export default function UploadExams() {
-  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher' | 'batch'>('batch');
+  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher' | 'batch' | 'batch8'>('batch8');
   const [refreshRepoTrigger, setRefreshRepoTrigger] = useState(0);
 
   // PDF Upload States
@@ -202,14 +203,12 @@ export default function UploadExams() {
         questionsListDocs.push(questionDoc);
       }
 
-      // Try Firestore write, gracefully fall back to local storage on any permission or network error
-      try {
-        await addDoc(collection(db, 'exams'), examDoc);
-        for (const qDoc of questionsListDocs) {
-          await addDoc(collection(db, 'questions'), qDoc);
-        }
-      } catch (firestoreErr) {
-        console.warn("Firestore write bypassed due to permissions or offline state, using local storage cache:", firestoreErr);
+      // Direct strict sync write to Firestore database
+      const docRef = await addDoc(collection(db, 'exams'), examDoc);
+      examDoc.id = docRef.id;
+
+      for (const qDoc of questionsListDocs) {
+        await addDoc(collection(db, 'questions'), qDoc);
       }
 
       // Always save to localStorage backup as well so it's instantly available
@@ -237,7 +236,18 @@ export default function UploadExams() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
+        <button
+          onClick={() => setActiveTab('batch8')}
+          className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'batch8'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-300" /> Inject Paper 2 Batch 8
+        </button>
+
         <button
           onClick={() => setActiveTab('batch')}
           className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
@@ -293,6 +303,11 @@ export default function UploadExams() {
           <Database className="w-4 h-4" /> Question Bank
         </button>
       </div>
+
+      {/* Tab Batch 8 Injector */}
+      {activeTab === 'batch8' && (
+        <InjectBatch8Exam />
+      )}
 
       {/* Tab Batch: Batch CSV & Answer Sheet Uploader */}
       {activeTab === 'batch' && (

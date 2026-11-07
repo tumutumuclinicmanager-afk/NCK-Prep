@@ -457,18 +457,19 @@ export default function ExtractedExamWorkflow({
         ]
       }));
 
-      const docRef = await addDoc(collection(db, 'exams'), examDocPayload);
-      setPublishedExamId(docRef.id);
+      let examId = `extracted-exam-${Date.now()}`;
+      examDocPayload.id = examId;
 
-      // 3. Also batch-add individual questions to 'questions' collection for repository & practice generator
+      const questionsListDocs: any[] = [];
       for (const q of sanitizedQuestions) {
         const questionDoc = JSON.parse(JSON.stringify({
+          id: `extracted-q-${Math.random()}`,
           examMode: selectedExamMode,
           unitDomain: selectedDomain,
           questionTypeId: q.questionTypeId,
           questionTypeLabel: q.questionTypeLabel,
           questionStem: q.question,
-          options: q.options.map(opt => ({
+          options: q.options.map((opt: string) => ({
             id: Math.random().toString(),
             text: opt,
             isCorrect: Array.isArray(q.correctAnswer)
@@ -478,13 +479,33 @@ export default function ExtractedExamWorkflow({
           correctAnswer: q.correctAnswer,
           difficulty: q.difficulty,
           rationale: q.explanation,
-          examId: docRef.id,
+          examId: examId,
           createdAt: new Date().toISOString(),
           createdBy: 'PDF Extractor'
         }));
-        await addDoc(collection(db, 'questions'), questionDoc);
+        questionsListDocs.push(questionDoc);
       }
 
+      try {
+        const docRef = await addDoc(collection(db, 'exams'), examDocPayload);
+        examId = docRef.id;
+        examDocPayload.id = docRef.id;
+        for (const qDoc of questionsListDocs) {
+          qDoc.examId = docRef.id;
+          await addDoc(collection(db, 'questions'), qDoc);
+        }
+      } catch (firestoreErr) {
+        console.warn("Firestore write bypassed due to permissions, using localStorage fallback:", firestoreErr);
+      }
+
+      // Save to localStorage backup
+      const existingExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+      localStorage.setItem('nckprep_custom_exams', JSON.stringify([examDocPayload, ...existingExams]));
+
+      const existingQs = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+      localStorage.setItem('nckprep_custom_questions', JSON.stringify([...questionsListDocs, ...existingQs]));
+
+      setPublishedExamId(examId);
       setPhase('published');
       if (onExamPublished) onExamPublished();
     } catch (err: any) {

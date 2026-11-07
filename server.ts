@@ -890,7 +890,7 @@ If no questions exist in the document, return an empty array []. Output ONLY the
           }
 
           const aiPromise = ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.8-flash",
             contents: contents,
             config: { responseMimeType: "application/json" }
           });

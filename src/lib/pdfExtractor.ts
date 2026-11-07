@@ -54,11 +54,17 @@ export async function extractTextFromPdfArrayBuffer(arrayBuffer: ArrayBuffer): P
   // Step 1: Use legacy pdfjs-dist engine (works without external worker)
   try {
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    if (pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version || '3.11.174'}/pdf.worker.min.js`;
+    }
     const loadingTask = pdfjs.getDocument({
       data: new Uint8Array(arrayBuffer),
       useSystemFonts: true,
       disableFontFace: true,
       isEvalSupported: false,
+      cMapUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version || '3.11.174'}/cmaps/`,
+      cMapPacked: true,
+      standardFontDataUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version || '3.11.174'}/standard_fonts/`,
     });
     const doc = await loadingTask.promise;
     let fullText = '';
