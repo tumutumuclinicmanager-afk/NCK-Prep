@@ -13,28 +13,11 @@ import {
 } from '@/types';
 
 const DEFAULT_EXAM_MODES = [
-  // Entrance Exams
-  'ATI TEAS',
-  'HESI A2',
-  'ACCUPLACER',
-  'GED',
-  'HISET',
-
-  // Nursing Exams
-  'NCK',
   'NCK Registered Nurse (RN) FQE',
-  'NCK Community Health Nurse',
-  'ATI RN',
-  'ATI LPN',
-  'HESI RN',
-  'HESI LPN',
-  'Examplify RN',
-  'Examplify LPN',
-
-  // Exit Exams
-  'ATI Exit Exam',
-  'HESI Exit Exam',
-  'Examplify Exit Exam'
+  'NCK Community Health Nursing',
+  'NCK Midwifery & Obstetric Nursing',
+  'NCK Psychiatric & Mental Health Nursing',
+  'NCK Nursing Ethics & Professional Jurisprudence'
 ];
 
 const DEFAULT_UNITS = [

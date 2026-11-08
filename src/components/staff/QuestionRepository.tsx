@@ -6,10 +6,11 @@ import { db } from '@/lib/firebase';
 import { QuestionData } from '@/types';
 
 const DEFAULT_EXAM_MODES = [
-  'ATI TEAS', 'HESI A2', 'ACCUPLACER', 'GED', 'HISET', 
-  'NCK', 'NCK Registered Nurse (RN) FQE', 'NCK Community Health Nurse', 'ATI RN', 'ATI LPN', 
-  'HESI RN', 'HESI LPN', 'Examplify RN', 'Examplify LPN', 
-  'ATI Exit Exam', 'HESI Exit Exam', 'Examplify Exit Exam'
+  'NCK Registered Nurse (RN) FQE',
+  'NCK Community Health Nursing',
+  'NCK Midwifery & Obstetric Nursing',
+  'NCK Psychiatric & Mental Health Nursing',
+  'NCK Nursing Ethics & Professional Jurisprudence'
 ];
 
 export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?: number }) {

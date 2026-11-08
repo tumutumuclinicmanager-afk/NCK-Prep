@@ -14,23 +14,11 @@ import InjectBatch8Exam from '@/components/staff/InjectBatch8Exam';
 import InjectMock1Exam from '@/components/staff/InjectMock1Exam';
 
 const DEFAULT_EXAM_TYPES = [
-  'ATI TEAS',
-  'HESI A2',
-  'ACCUPLACER',
-  'GED',
-  'HISET',
-  'NCK',
-  'NCLEX-RN',
-  'NCLEX-PN',
-  'ATI RN',
-  'ATI LPN',
-  'HESI RN',
-  'HESI LPN',
-  'Examplify RN',
-  'Examplify LPN',
-  'ATI Exit Exam',
-  'HESI Exit Exam',
-  'Examplify Exit Exam'
+  'NCK Registered Nurse (RN) FQE',
+  'NCK Community Health Nursing',
+  'NCK Midwifery & Obstetric Nursing',
+  'NCK Psychiatric & Mental Health Nursing',
+  'NCK Nursing Ethics & Professional Jurisprudence'
 ];
 
 const QUESTION_TYPES = [

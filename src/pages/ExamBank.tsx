@@ -146,111 +146,68 @@ export function getProminentExamMeta(text?: string): ProminentExamMeta {
 }
 
 const defaultExamBundles: ExamItem[] = [
-  // ================= ENTRANCE EXAMS =================
   { 
-    id: 'ati-teas-mastery', 
-    title: 'ATI TEAS 7 Entrance Mastery Prep', 
-    category: 'ATI TEAS', 
-    domain: 'Nursing Fundamentals', 
+    id: 'nck-mock-1', 
+    title: 'NCK Mock 1 - October 2025', 
+    category: 'NCK Registered Nurse (RN) FQE', 
+    domain: 'Medical-Surgical Nursing', 
     price: 'Free Access', 
     numericPrice: 0, 
-    questionCount: 80, 
-    durationMinutes: 90, 
-    difficulty: 'Medium', 
-    isPremium: false, 
-    features: ['Reading & Science Breakdown', 'Math & Chemistry Practice', 'Full Diagnostic Analysis'], 
-    icon: BookOpen, 
-    color: 'text-amber-600', 
-    bg: 'bg-amber-100',
-    requiredPlan: 'free',
-    questionLimits: { free: 10, basic: 40, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'hesi-a2-entrance', 
-    title: 'HESI A2 Admission Assessment Package', 
-    category: 'HESI A2', 
-    domain: 'Nursing Fundamentals', 
-    price: 'Basic Plan Required', 
-    numericPrice: 15000, 
     questionCount: 120, 
-    durationMinutes: 120, 
-    difficulty: 'Medium', 
-    isPremium: true, 
-    features: ['Anatomy & Physiology Modules', 'Vocabulary & Grammar', 'Math Conversions'], 
-    icon: HeartPulse, 
-    color: 'text-rose-600', 
-    bg: 'bg-rose-100',
-    requiredPlan: 'basic',
-    questionLimits: { free: 5, basic: 30, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'accuplacer-prep', 
-    title: 'ACCUPLACER Pre-Nursing Diagnostics', 
-    category: 'ACCUPLACER', 
-    domain: 'Nursing Fundamentals', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 50, 
-    durationMinutes: 60, 
-    difficulty: 'Beginner', 
+    durationMinutes: 150, 
+    difficulty: 'Advanced', 
     isPremium: false, 
-    features: ['Quantitative Reasoning', 'Reading Comprehension', 'Sentence Skills'], 
-    icon: Brain, 
-    color: 'text-teal-600', 
-    bg: 'bg-teal-100',
+    features: ['October 2025 Mock Edition', 'Detailed Clinical Rationales', 'Immediate NCK Performance Analytics'], 
+    icon: Award, 
+    color: 'text-blue-700', 
+    bg: 'bg-blue-100',
     requiredPlan: 'free',
-    questionLimits: { free: 10, basic: 25, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'ged-prep-1', 
-    title: 'GED Science & Pre-Nursing Foundations', 
-    category: 'GED', 
-    domain: 'Nursing Fundamentals', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 40, 
-    durationMinutes: 50, 
-    difficulty: 'Beginner', 
-    isPremium: false, 
-    features: ['Human Biology Concepts', 'Scientific Reasoning', 'Interactive Quizzes'], 
-    icon: BookOpen, 
-    color: 'text-emerald-600', 
-    bg: 'bg-emerald-100',
-    requiredPlan: 'free',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 },
+    questionLimits: { free: 20, basic: 120, gold: 0, platinum: 0 },
     questions: [
       {
-        question: 'Which cellular organelle is primarily responsible for ATP energy production during aerobic respiration?',
-        options: ['Ribosome', 'Mitochondria', 'Golgi apparatus', 'Endoplasmic reticulum'],
-        correctAnswer: 'Mitochondria',
-        explanation: 'Mitochondria generate cellular energy (ATP) through electron transport and the Krebs cycle.'
+        question: 'Which assessment finding is most indicative of acute respiratory distress syndrome (ARDS) in a post-operative patient?',
+        options: ['Refractory hypoxemia despite high-flow oxygen', 'Productive cough with rust-colored sputum', 'Exertional dyspnea and wheezing', 'Intermittent chest pain relieved by nitroglycerin'],
+        correctAnswer: 'Refractory hypoxemia despite high-flow oxygen',
+        explanation: 'Refractory hypoxemia (low arterial oxygen that does not improve with supplemental oxygen delivery) is the hallmark physiological feature of ARDS.'
+      },
+      {
+        question: 'A nurse is caring for a client receiving digoxin 0.25 mg daily and furosemide 40 mg daily. Which symptom suggests digitalis toxicity?',
+        options: ['Yellow-green visual halos and nausea', 'Hypertension and tachycardia', 'Fine motor tremors and muscle rigidity', 'Polyuria and excessive thirst'],
+        correctAnswer: 'Yellow-green visual halos and nausea',
+        explanation: 'Visual disturbances such as blurred vision, yellow-green halos, and gastrointestinal upset (nausea/vomiting) are classic signs of digitalis toxicity.'
       }
     ]
   },
   { 
-    id: 'hiset-prep', 
-    title: 'HISET Academic Competency Mock Exam', 
-    category: 'HISET', 
-    domain: 'Nursing Fundamentals', 
+    id: 'nck-paper-2-batch-8', 
+    title: 'NCK Paper 2 Batch 8 Questions & Answers', 
+    category: 'NCK Registered Nurse (RN) FQE', 
+    domain: 'Pharmacology & Parenteral Therapies', 
     price: 'Free Access', 
     numericPrice: 0, 
-    questionCount: 45, 
+    questionCount: 50, 
     durationMinutes: 60, 
-    difficulty: 'Beginner', 
+    difficulty: 'Medium', 
     isPremium: false, 
-    features: ['High School Equivalency', 'Science & Logic', 'College Preparedness'], 
-    icon: Activity, 
-    color: 'text-cyan-600', 
-    bg: 'bg-cyan-100',
+    features: ['Batch 8 Board Review', 'Answers & Rationales', 'High-Yield Clinical Cases'], 
+    icon: ShieldCheck, 
+    color: 'text-indigo-700', 
+    bg: 'bg-indigo-100',
     requiredPlan: 'free',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 }
+    questionLimits: { free: 10, basic: 50, gold: 0, platinum: 0 },
+    questions: [
+      {
+        question: 'During the administration of packed red blood cells (PRBCs), a client develops chills, fever, and lower back pain within 15 minutes. What is the nurse\'s immediate action?',
+        options: ['Slow the transfusion rate by half', 'Stop the transfusion immediately and disconnect tubing', 'Administer prescribed acetaminophen and diphenhydramine', 'Notify the attending physician after completing transfusion'],
+        correctAnswer: 'Stop the transfusion immediately and disconnect tubing',
+        explanation: 'Fever, chills, and lower back pain indicate an acute hemolytic transfusion reaction. The transfusion must be stopped immediately, and normal saline infused through a new line.'
+      }
+    ]
   },
-
-  // ================= NURSING SCHOOL & BOARD EXAMS =================
   { 
-    id: 'nck-medsurg-1', 
-    title: 'NCK Medical-Surgical Mastery Mock', 
-    category: 'NCK', 
+    id: 'nck-fqe-mastery', 
+    title: 'NCK Registered Nurse (RN) FQE Mastery Prep', 
+    category: 'NCK Registered Nurse (RN) FQE', 
     domain: 'Medical-Surgical Nursing', 
     price: 'Free Access', 
     numericPrice: 0, 
@@ -259,239 +216,47 @@ const defaultExamBundles: ExamItem[] = [
     difficulty: 'Medium', 
     isPremium: false, 
     features: ['NCK Blueprint Aligned', 'Comprehensive Rationales', 'Performance Breakdown'], 
-    icon: Activity, 
-    color: 'text-purple-600', 
-    bg: 'bg-purple-100',
-    requiredPlan: 'free',
-    questionLimits: { free: 10, basic: 50, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'nclex-rn-nextgen-1', 
-    title: 'NCK Registered Nurse (RN) FQE NextGen Clinical Judgment Set', 
-    category: 'NCK Registered Nurse (RN) FQE', 
-    domain: 'Pharmacology & Parenteral Therapies', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 50, 
-    durationMinutes: 60, 
-    difficulty: 'Advanced', 
-    isPremium: false, 
-    features: ['Bowtie Matrix Questions', 'Case Study Exhibits', 'Instant Rationale Feedback'], 
     icon: Brain, 
-    color: 'text-blue-600', 
-    bg: 'bg-blue-100',
+    color: 'text-emerald-700', 
+    bg: 'bg-emerald-100',
     requiredPlan: 'free',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 },
-    questions: [
-      {
-        question: 'A nurse is caring for a patient experiencing acute anaphylaxis following intravenous antibiotic administration. Which medication should the nck prepare to administer immediately?',
-        options: ['Diphenhydramine 50 mg IV', 'Epinephrine 0.3 mg IM', 'Methylprednisolone 125 mg IV', 'Albuterol nebulizer 2.5 mg'],
-        correctAnswer: 'Epinephrine 0.3 mg IM',
-        explanation: 'Epinephrine intramuscularly (IM) into the anterolateral thigh is the first-line treatment for anaphylaxis to counteract broncho-constriction and systemic vasodilation.'
-      },
-      {
-        question: 'Which assessment finding requires immediate intervention in a patient 2 hours post-thyroidectomy?',
-        options: ['Mild incisional pain (3/10)', 'Stridor and noisy breathing', 'Serosanguinous dressing drainage', 'Hoarseness when speaking'],
-        correctAnswer: 'Stridor and noisy breathing',
-        explanation: 'Stridor indicates upper airway obstruction secondary to laryngeal edema or recurrent laryngeal nerve damage, requiring immediate emergency airway protection.'
-      },
-      {
-        question: 'A client with heart failure is prescribed furosemide 40 mg PO daily. Which serum laboratory value should the nurse monitor most closely?',
-        options: ['Serum Sodium', 'Serum Potassium', 'Blood Urea Nitrogen', 'Serum Calcium'],
-        correctAnswer: 'Serum Potassium',
-        explanation: 'Furosemide is a loop diuretic that causes potassium wasting, increasing the risk for severe hypokalemia and cardiac dysrhythmias.'
-      }
-    ]
+    questionLimits: { free: 15, basic: 100, gold: 0, platinum: 0 }
   },
   { 
-    id: 'nclex-pn-mastery', 
-    title: 'NCK Community Health Nurse Practical Nursing Licensure Set', 
+    id: 'nck-community-health', 
+    title: 'NCK Community Health & Midwifery Nursing', 
     category: 'NCK Community Health Nurse', 
-    domain: 'Medical-Surgical Nursing', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 60, 
-    durationMinutes: 75, 
-    difficulty: 'Medium', 
-    isPremium: false, 
-    features: ['LPN Scope of Practice', 'Basic Care & Comfort', 'Safe Medication Administration'], 
-    icon: ShieldCheck, 
-    color: 'text-indigo-600', 
-    bg: 'bg-indigo-100',
-    requiredPlan: 'free',
-    questionLimits: { free: 10, basic: 30, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'ati-rn-modular', 
-    title: 'ATI RN Pharmacology & MedSurg Modular Test', 
-    category: 'ATI RN', 
-    domain: 'Pharmacology & Parenteral Therapies', 
-    price: 'Basic Plan Required', 
-    numericPrice: 12000, 
-    questionCount: 90, 
-    durationMinutes: 100, 
-    difficulty: 'Advanced', 
-    isPremium: true, 
-    features: ['ATI Nursing Aligned', 'Focused Remediation', 'Detailed Score Reports'], 
-    icon: BookOpen, 
-    color: 'text-orange-600', 
-    bg: 'bg-orange-100',
-    requiredPlan: 'basic',
-    questionLimits: { free: 5, basic: 30, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'ati-lpn-modular', 
-    title: 'ATI LPN Fundamentals & Practical Nursing', 
-    category: 'ATI LPN', 
-    domain: 'Nursing Fundamentals', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 65, 
-    durationMinutes: 75, 
-    difficulty: 'Medium', 
-    isPremium: false, 
-    features: ['ATI Practical Nursing', 'Essential Skills', 'Instant Explanations'], 
-    icon: BookOpen, 
-    color: 'text-amber-700', 
-    bg: 'bg-amber-50',
-    requiredPlan: 'free',
-    questionLimits: { free: 10, basic: 30, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'hesi-rn-specialty', 
-    title: 'HESI RN Specialty Practice Pack', 
-    category: 'HESI RN', 
-    domain: 'Pediatric Nursing', 
-    price: 'Basic Plan Required', 
-    numericPrice: 18000, 
-    questionCount: 75, 
-    durationMinutes: 90, 
-    difficulty: 'Medium', 
-    isPremium: true, 
-    features: ['HESI Curriculum Aligned', 'Growth & Development', 'Dosage Calculation'], 
-    icon: Baby, 
-    color: 'text-rose-600', 
-    bg: 'bg-rose-100',
-    requiredPlan: 'basic',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 },
-    questions: [
-      {
-        question: 'An infant with tetralogy of Fallot experiences a hypercyanotic "tet" spell while crying. What is the nurse\'s primary immediate action?',
-        options: ['Administer high-flow oxygen via mask', 'Place the infant in a knee-to-chest position', 'Notify the pediatric cardiologist', 'Start an IV access line'],
-        correctAnswer: 'Place the infant in a knee-to-chest position',
-        explanation: 'Knee-to-chest positioning increases systemic vascular resistance, reducing right-to-left shunting and promoting pulmonary blood flow.'
-      }
-    ]
-  },
-  { 
-    id: 'hesi-lpn-specialty', 
-    title: 'HESI LPN Practical Nursing Mastery', 
-    category: 'HESI LPN', 
-    domain: 'Medical-Surgical Nursing', 
-    price: 'Free Access', 
-    numericPrice: 0, 
-    questionCount: 55, 
-    durationMinutes: 70, 
-    difficulty: 'Medium', 
-    isPremium: false, 
-    features: ['Practical Nursing Specialty', 'Clinical Vignettes', 'Step-by-Step Rationales'], 
-    icon: HeartPulse, 
-    color: 'text-pink-600', 
-    bg: 'bg-pink-100',
-    requiredPlan: 'free',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'examplify-rn-coursework', 
-    title: 'Examplify RN Coursework & In-School Exam', 
-    category: 'Examplify RN', 
-    domain: 'Maternal & Newborn Health', 
-    price: 'Gold Plan Required', 
-    numericPrice: 20000, 
-    questionCount: 85, 
-    durationMinutes: 100, 
-    difficulty: 'Advanced', 
-    isPremium: true, 
-    features: ['ExamSoft / Examplify Style', 'Timer Simulation', 'Faculty Authored'], 
-    icon: Layers, 
-    color: 'text-violet-600', 
-    bg: 'bg-violet-100',
-    requiredPlan: 'gold',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'examplify-lpn-coursework', 
-    title: 'Examplify LPN Clinical Practice Exam', 
-    category: 'Examplify LPN', 
     domain: 'Community & Public Health', 
     price: 'Free Access', 
     numericPrice: 0, 
-    questionCount: 50, 
-    durationMinutes: 60, 
+    questionCount: 80, 
+    durationMinutes: 90, 
     difficulty: 'Medium', 
     isPremium: false, 
-    features: ['ExamSoft Practical Format', 'Community Health', 'Clear Diagnostics'], 
-    icon: Layers, 
-    color: 'text-purple-600', 
+    features: ['Obstetric Nursing', 'Maternal & Newborn Protocols', 'Public Health Care'], 
+    icon: BookOpen, 
+    color: 'text-teal-700', 
+    bg: 'bg-teal-100',
+    requiredPlan: 'free',
+    questionLimits: { free: 15, basic: 80, gold: 0, platinum: 0 }
+  },
+  { 
+    id: 'nck-ethics-jurisprudence', 
+    title: 'NCK Nursing Ethics & Professional Jurisprudence', 
+    category: 'NCK Nursing Ethics & Professional Jurisprudence', 
+    domain: 'Nursing Fundamentals', 
+    price: 'Free Access', 
+    numericPrice: 0, 
+    questionCount: 60, 
+    durationMinutes: 70, 
+    difficulty: 'Beginner', 
+    isPremium: false, 
+    features: ['Kenya Health Law', 'Nursing Act Standards', 'Professional Conduct'], 
+    icon: Activity, 
+    color: 'text-purple-700', 
     bg: 'bg-purple-100',
     requiredPlan: 'free',
-    questionLimits: { free: 5, basic: 25, gold: 0, platinum: 0 }
-  },
-
-  // ================= EXIT EXAMS =================
-  { 
-    id: 'ati-exit-comprehensive', 
-    title: 'ATI Comprehensive Predictor Exit Exam Mock', 
-    category: 'ATI Exit Exam', 
-    domain: 'Medical-Surgical Nursing', 
-    price: 'Gold Plan Required', 
-    numericPrice: 25000, 
-    questionCount: 180, 
-    durationMinutes: 210, 
-    difficulty: 'Advanced', 
-    isPremium: true, 
-    features: ['99% NCK Licensure Predictor Score', 'All ATI Modular Topics', 'Comprehensive Focused Review'], 
-    icon: Crown, 
-    color: 'text-amber-600', 
-    bg: 'bg-amber-100',
-    requiredPlan: 'gold',
-    questionLimits: { free: 5, basic: 20, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'hesi-exit-rn-lpn', 
-    title: 'HESI Exit RN/LPN Graduation Assessment', 
-    category: 'HESI Exit Exam', 
-    domain: 'Critical Care & Emergency Nursing', 
-    price: 'Gold Plan Required', 
-    numericPrice: 25000, 
-    questionCount: 160, 
-    durationMinutes: 180, 
-    difficulty: 'Advanced', 
-    isPremium: true, 
-    features: ['HESI Conversion Score', 'Exit Threshold Benchmarking', 'Remediation Pack'], 
-    icon: HeartPulse, 
-    color: 'text-rose-700', 
-    bg: 'bg-rose-100',
-    requiredPlan: 'gold',
-    questionLimits: { free: 5, basic: 20, gold: 0, platinum: 0 }
-  },
-  { 
-    id: 'examplify-exit-simulation', 
-    title: 'Examplify Nursing Program Exit Simulation', 
-    category: 'Examplify Exit Exam', 
-    domain: 'Nursing Fundamentals & Leadership', 
-    price: 'Gold Plan Required', 
-    numericPrice: 22000, 
-    questionCount: 150, 
-    durationMinutes: 180, 
-    difficulty: 'Advanced', 
-    isPremium: true, 
-    features: ['Final Graduation Barrier Exam', 'ExamSoft Environment Simulation', 'Comprehensive Blueprint'], 
-    icon: ShieldCheck, 
-    color: 'text-indigo-700', 
-    bg: 'bg-indigo-100',
-    requiredPlan: 'gold',
-    questionLimits: { free: 5, basic: 20, gold: 0, platinum: 0 }
+    questionLimits: { free: 10, basic: 60, gold: 0, platinum: 0 }
   }
 ];
 
@@ -514,23 +279,11 @@ const PLAN_LEVELS: Record<string, number> = {
 };
 
 const EXAM_TYPE_CATEGORIES: Record<string, string[]> = {
-  'ATI TEAS': ['Reading & Comprehension', 'Mathematics & Algebra', 'Science (A&P, Biology, Chemistry)', 'English & Language Usage'],
-  'HESI A2': ['Anatomy & Physiology', 'Reading Comprehension', 'Vocabulary & General Knowledge', 'Mathematics', 'Grammar'],
   'NCK Registered Nurse (RN) FQE': ['Medical-Surgical Nursing', 'Pharmacology & Parenteral Therapies', 'Maternal & Newborn Health', 'Pediatric Nursing', 'Psychiatric & Mental Health', 'Community & Public Health', 'Nursing Fundamentals'],
   'NCK Community Health Nurse': ['Basic Care & Comfort', 'Management of Care', 'Pharmacological & Parenteral Therapies', 'Reduction of Risk Potential', 'Psychosocial Integrity'],
-  'NCK': ['Nursing Fundamentals', 'Medical-Surgical Nursing', 'Community & Public Health', 'Pharmacology'],
-  'ATI RN': ['Custom', 'Fundamentals', 'Paediatric Nursing', 'Maternal Newborn', 'Pharmacology', 'Medsurg', 'Management', 'Leadership', 'Health Assessment', 'Dosage Calculation'],
-  'ATI LPN': ['Custom', 'Fundamentals', 'Paediatric Nursing', 'Maternal Newborn', 'Pharmacology', 'Medsurg', 'Management', 'Leadership', 'Health Assessment', 'Dosage Calculation'],
-  'HESI RN': ['Pediatrics', 'Maternal-Newborn', 'Med-Surg', 'Critical Care', 'Pharmacology'],
-  'HESI LPN': ['Practical Nursing Fundamentals', 'Med-Surg', 'Pharmacology', 'Mental Health'],
-  'Examplify RN': ['Coursework & In-School Exam', 'Advanced Clinicals', 'Pharmacology', 'Leadership'],
-  'Examplify LPN': ['Clinical Practice', 'Fundamentals', 'Med-Surg'],
-  'ATI Exit Exam': ['Comprehensive Predictor', 'Critical Care', 'Leadership', 'Pharmacology'],
-  'HESI Exit Exam': ['Graduation Assessment', 'Conversion Score', 'Remediation'],
-  'Examplify Exit Exam': ['Final Graduation Barrier Exam', 'Simulation & Blueprint'],
-  'ACCUPLACER': ['Quantitative Reasoning', 'Reading Comprehension', 'Sentence Skills'],
-  'GED': ['Human Biology & Science', 'Scientific Reasoning', 'Quantitative Skills'],
-  'HISET': ['Science & Logic', 'Academic Competency', 'College Preparedness']
+  'NCK Midwifery & Obstetric Nursing': ['Obstetric Nursing', 'Maternal Health', 'Neonatal Care', 'Labour & Delivery'],
+  'NCK Psychiatric & Mental Health Nursing': ['Mental Health Disorders', 'Psychopharmacology', 'Therapeutic Communication'],
+  'NCK Nursing Ethics & Professional Jurisprudence': ['Nursing Ethics', 'Professional Practice', 'Kenya Health Law', 'Jurisprudence']
 };
 
 export default function ExamBank() {
@@ -902,40 +655,54 @@ export default function ExamBank() {
           console.warn("Could not fetch user subscription plan:", uErr);
         }
 
-        const q = query(collection(db, 'payments'), where('user', '==', userEmail));
-        const snap = await getDocs(q);
-        const titles = new Set<string>();
-        snap.docs.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.status === 'Approved' || data.status === 'Completed') {
-            if (data.plan) titles.add(data.plan);
-            if (data.planName) titles.add(data.planName);
-            if (data.examId) titles.add(data.examId);
-          }
-        });
-        setPurchasedTitles(titles);
+        // Fetch purchases with resilient try/catch fallback
+        try {
+          const q = query(collection(db, 'payments'), where('user', '==', userEmail));
+          const snap = await getDocs(q);
+          const titles = new Set<string>();
+          snap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.status === 'Approved' || data.status === 'Completed') {
+              if (data.plan) titles.add(data.plan);
+              if (data.planName) titles.add(data.planName);
+              if (data.examId) titles.add(data.examId);
+            }
+          });
+          setPurchasedTitles(titles);
+        } catch (payErr) {
+          console.warn('Payments fetch note (falling back to cache):', payErr);
+          const localPurchases = JSON.parse(localStorage.getItem('nckprep_user_purchases') || '[]');
+          const titles = new Set<string>(localPurchases);
+          if (userSubscriptionPlan !== 'free') titles.add(userSubscriptionPlan);
+          setPurchasedTitles(titles);
+        }
       }
     } catch (err) {
-      console.error('Error fetching purchases:', err);
+      console.warn('Error fetching purchases (handled):', err);
     }
   };
 
   const fetchUserFavorites = async () => {
     try {
       if (auth.currentUser) {
-        const q = query(collection(db, `users/${auth.currentUser.uid}/favorites`));
-        const snap = await getDocs(q);
-        const favs: FavoriteItem[] = snap.docs.map(docSnap => ({
-          docId: docSnap.id,
-          ...docSnap.data()
-        } as FavoriteItem));
-        setFavoritesList(favs);
-      } else {
-        const localFavs = JSON.parse(localStorage.getItem('nckprep_guest_favorites') || '[]');
-        setFavoritesList(localFavs);
+        try {
+          const q = query(collection(db, `users/${auth.currentUser.uid}/favorites`));
+          const snap = await getDocs(q);
+          const favs: FavoriteItem[] = snap.docs.map(docSnap => ({
+            docId: docSnap.id,
+            ...docSnap.data()
+          } as FavoriteItem));
+          setFavoritesList(favs);
+          return;
+        } catch (favFsErr) {
+          console.warn('Firestore favorites fetch note (falling back to localStorage):', favFsErr);
+        }
       }
+      
+      const localFavs = JSON.parse(localStorage.getItem('nckprep_guest_favorites') || localStorage.getItem('nckprep_user_favorites') || '[]');
+      setFavoritesList(localFavs);
     } catch (err) {
-      console.error('Error fetching favorites:', err);
+      console.warn('Error fetching favorites (handled):', err);
     }
   };
 
@@ -1044,45 +811,49 @@ export default function ExamBank() {
     try {
       setLoadingDb(true);
       
-      // 1. Fetch Firestore exams collection
-      const examsSnap = await getDocs(query(collection(db, 'exams')));
       const dbExams: ExamItem[] = [];
       const examDocsQuestions: any[] = [];
-      
-      if (!examsSnap.empty) {
-        examsSnap.docs.forEach(docSnap => {
-          const data = docSnap.data();
-          
-          // Hide unpublished/draft exams for students
-          if (data.isPublished === false) return;
 
-          const cat = normalizeExamCategory(data.category);
-          const qList = data.questions || [];
-          qList.forEach((q: any) => examDocsQuestions.push({ ...q, examMode: cat }));
+      // 1. Fetch Firestore exams collection with resilient error handling
+      try {
+        const examsSnap = await getDocs(query(collection(db, 'exams')));
+        if (!examsSnap.empty) {
+          examsSnap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            
+            // Hide unpublished/draft exams for students
+            if (data.isPublished === false) return;
 
-          const reqP = (data.requiredPlan || 'free').toLowerCase() as any;
+            const cat = normalizeExamCategory(data.category);
+            const qList = data.questions || [];
+            qList.forEach((q: any) => examDocsQuestions.push({ ...q, examMode: cat }));
 
-          dbExams.push({
-            id: docSnap.id,
-            title: data.title || 'Custom Uploaded Exam',
-            category: cat,
-            domain: data.domain || 'Medical-Surgical Nursing',
-            price: data.price || (reqP !== 'free' ? `${reqP.toUpperCase()} PLAN` : 'Free Access'),
-            numericPrice: 0,
-            questionCount: qList.length,
-            durationMinutes: Math.max(15, qList.length * 2),
-            difficulty: 'Medium',
-            isPremium: reqP !== 'free',
-            features: ['Lecturer Authored', 'Verified Questions', 'Instant Feedback'],
-            icon: cat === 'NCK FQE' || cat === 'NCK Registered Nurse (RN) FQE' ? Brain : cat === 'HESI' ? HeartPulse : cat === 'GED' ? BookOpen : Activity,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            questions: qList,
-            requiredPlan: reqP,
-            questionLimits: data.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
-            isPublished: true
+            const reqP = (data.requiredPlan || 'free').toLowerCase() as any;
+
+            dbExams.push({
+              id: docSnap.id,
+              title: data.title || 'Custom Uploaded Exam',
+              category: cat,
+              domain: data.domain || 'Medical-Surgical Nursing',
+              price: data.price || (reqP !== 'free' ? `${reqP.toUpperCase()} PLAN` : 'Free Access'),
+              numericPrice: 0,
+              questionCount: qList.length,
+              durationMinutes: Math.max(15, qList.length * 2),
+              difficulty: 'Medium',
+              isPremium: reqP !== 'free',
+              features: ['Lecturer Authored', 'Verified Questions', 'Instant Feedback'],
+              icon: cat === 'NCK FQE' || cat === 'NCK Registered Nurse (RN) FQE' ? Brain : Activity,
+              color: 'text-blue-600',
+              bg: 'bg-blue-50',
+              questions: qList,
+              requiredPlan: reqP,
+              questionLimits: data.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
+              isPublished: true
+            });
           });
-        });
+        }
+      } catch (fsExamsErr) {
+        console.warn('Firestore exams fetch note (falling back to localStorage):', fsExamsErr);
       }
 
        // Also load local storage custom exams
@@ -1105,7 +876,7 @@ export default function ExamBank() {
              difficulty: 'Medium',
              isPremium: false,
              features: ['Lecturer Authored', 'Verified Questions', 'Instant Feedback'],
-             icon: cat === 'NCK FQE' || cat === 'NCK Registered Nurse (RN) FQE' ? Brain : cat === 'HESI' ? HeartPulse : cat === 'GED' ? BookOpen : Activity,
+             icon: cat === 'NCK FQE' || cat === 'NCK Registered Nurse (RN) FQE' ? Brain : Activity,
              color: 'text-blue-600',
              bg: 'bg-blue-50',
              questions: qList,
@@ -1116,17 +887,21 @@ export default function ExamBank() {
          });
        } catch (e) {}
 
-      // 2. Fetch Firestore individual questions collection
-      const questionsSnap = await getDocs(query(collection(db, 'questions')));
+      // 2. Fetch Firestore individual questions collection with resilient error handling
       const dbQuestionsList: any[] = [];
-      if (!questionsSnap.empty) {
-        questionsSnap.docs.forEach(docSnap => {
-          const data = docSnap.data();
-          dbQuestionsList.push({
-            id: docSnap.id,
-            ...data
+      try {
+        const questionsSnap = await getDocs(query(collection(db, 'questions')));
+        if (!questionsSnap.empty) {
+          questionsSnap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            dbQuestionsList.push({
+              id: docSnap.id,
+              ...data
+            });
           });
-        });
+        }
+      } catch (fsQErr) {
+        console.warn('Firestore questions fetch note (falling back to localStorage):', fsQErr);
       }
 
       // Also load local storage custom questions

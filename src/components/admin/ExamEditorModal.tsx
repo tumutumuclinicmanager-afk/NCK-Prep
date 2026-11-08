@@ -56,23 +56,11 @@ interface ExamEditorModalProps {
 }
 
 const POPULAR_EXAM_MODES = [
-  'ATI TEAS',
-  'HESI A2',
   'NCK Registered Nurse (RN) FQE',
-  'NCK Community Health Nurse',
-  'Examplify RN',
-  'Examplify LPN',
-  'ATI RN',
-  'ATI LPN',
-  'HESI RN',
-  'HESI LPN',
-  'ATI Exit Exam',
-  'HESI Exit Exam',
-  'Examplify Exit Exam',
-  'NCK',
-  'ACCUPLACER',
-  'GED',
-  'HISET'
+  'NCK Community Health Nursing',
+  'NCK Midwifery & Obstetric Nursing',
+  'NCK Psychiatric & Mental Health Nursing',
+  'NCK Nursing Ethics & Professional Jurisprudence'
 ];
 
 const POPULAR_DOMAINS = [
