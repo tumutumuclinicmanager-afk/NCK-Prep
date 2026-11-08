@@ -53,11 +53,43 @@ export default function Analytics() {
         setUsersCount(0);
       }
 
-      // 3. Fetch Stored Questions
+      // 3. Fetch Stored Questions (Firestore + Exams collection + LocalStorage)
       try {
-        const qSnap = await getDocs(query(collection(db, 'questions')));
-        setQuestionsCount(qSnap.size);
-        setQuestionsList(qSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        let qDocs: any[] = [];
+        try {
+          const qSnap = await getDocs(query(collection(db, 'questions')));
+          qDocs = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) {
+          console.warn("Firestore questions fetch note:", e);
+        }
+
+        const examQs: any[] = [];
+        try {
+          const examsSnap = await getDocs(query(collection(db, 'exams')));
+          if (!examsSnap.empty) {
+            examsSnap.docs.forEach(docSnap => {
+              const data = docSnap.data();
+              if (data.questions && Array.isArray(data.questions)) {
+                data.questions.forEach((q: any) => examQs.push({ ...q, examMode: data.category }));
+              }
+            });
+          }
+        } catch (e) {
+          console.warn("Firestore exams questions fetch note:", e);
+        }
+
+        const localQ = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+        const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+        const localExamQs: any[] = [];
+        localExams.forEach((ex: any) => {
+          if (ex.questions && Array.isArray(ex.questions)) {
+            ex.questions.forEach((q: any) => localExamQs.push({ ...q, examMode: ex.category }));
+          }
+        });
+
+        const combined = [...qDocs, ...examQs, ...localQ, ...localExamQs];
+        setQuestionsCount(combined.length);
+        setQuestionsList(combined);
       } catch (e) {
         console.warn("Error fetching questions for analytics:", e);
       }
