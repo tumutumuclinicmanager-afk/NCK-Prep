@@ -1128,9 +1128,24 @@ export default function ExamBank() {
     }
 
     // 2. Launch Practice with Full Question Access
-    const qList = exam.questions || [];
+    let qList = exam.questions || [];
     if (qList.length === 0) {
-      alert("This exam does not have questions attached yet.");
+      try {
+        const localQs = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+        const matching = localQs.filter((q: any) => normalizeExamCategory(q.examMode || q.category) === normalizeExamCategory(exam.category));
+        if (matching.length > 0) {
+          qList = matching.map((q: any) => ({
+            question: q.questionStem || q.question,
+            options: q.options ? q.options.map((o: any) => typeof o === 'string' ? o : o.text) : ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswer: q.options ? (q.options.find((o: any) => o.isCorrect)?.text || q.options[0]?.text) : 'Option A',
+            explanation: q.rationale || q.explanation || ''
+          }));
+        }
+      } catch (e) {}
+    }
+
+    if (qList.length === 0) {
+      alert("This exam does not have questions attached yet. Please ensure questions are added via the Question Bank or Exam Publisher.");
       return;
     }
 
@@ -1487,46 +1502,7 @@ export default function ExamBank() {
           </Button>
         </div>
 
-        {/* Categories Section ("Put categories later" support) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Folder className="w-5 h-5 text-blue-600" /> Categories & Sub-Topics
-            </h2>
-            <span className="text-xs font-semibold text-slate-500">Structured Curriculum Breakdown</span>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {categoriesList.map((cat, idx) => (
-              <div 
-                key={idx}
-                onClick={() => handleCategoryClick(cat)}
-                className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4 group cursor-pointer"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                      {idx + 1}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Module
-                    </span>
-                  </div>
-                  <h3 className="font-extrabold text-slate-900 text-sm md:text-base leading-snug">
-                    {cat}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    High-yield board questions and rationales focused on {cat}.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
-                  <span>Explore Topic</span>
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Practice Exams & Quizzes List for this Exam Type */}
         <div className="space-y-4 pt-4">
