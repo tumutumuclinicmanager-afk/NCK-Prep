@@ -10,9 +10,6 @@ import QuestionRepository from '@/components/staff/QuestionRepository';
 import ExamPublisher from '@/components/staff/ExamPublisher';
 import ExtractedExamWorkflow from '@/components/staff/ExtractedExamWorkflow';
 import { BatchUploader } from '@/components/staff/BatchUploader';
-import InjectBatch8Exam from '@/components/staff/InjectBatch8Exam';
-import InjectMock1Exam from '@/components/staff/InjectMock1Exam';
-
 const DEFAULT_EXAM_TYPES = [
   'NCK Registered Nurse (RN) FQE',
   'NCK Community Health Nursing',
@@ -45,7 +42,7 @@ const QUESTION_TYPES = [
 ];
 
 export default function UploadExams() {
-  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher' | 'batch' | 'batch8' | 'mock1'>('mock1');
+  const [activeTab, setActiveTab] = useState<'builder' | 'pdf' | 'repository' | 'publisher' | 'batch'>('pdf');
   const [refreshRepoTrigger, setRefreshRepoTrigger] = useState(0);
 
   // PDF Upload States
@@ -225,29 +222,7 @@ export default function UploadExams() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-7 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
-        <button
-          onClick={() => setActiveTab('mock1')}
-          className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-            activeTab === 'mock1'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" /> Inject NCK Mock 1
-        </button>
-
-        <button
-          onClick={() => setActiveTab('batch8')}
-          className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
-            activeTab === 'batch8'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Sparkles className="w-4 h-4 text-emerald-300" /> Inject Paper 2 Batch 8
-        </button>
-
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 bg-white rounded-xl p-1.5 shadow-xs border border-slate-200">
         <button
           onClick={() => setActiveTab('batch')}
           className={`py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
@@ -303,16 +278,6 @@ export default function UploadExams() {
           <Database className="w-4 h-4" /> Question Bank
         </button>
       </div>
-
-      {/* Tab Mock 1 Injector */}
-      {activeTab === 'mock1' && (
-        <InjectMock1Exam />
-      )}
-
-      {/* Tab Batch 8 Injector */}
-      {activeTab === 'batch8' && (
-        <InjectBatch8Exam />
-      )}
 
       {/* Tab Batch: Batch CSV & Answer Sheet Uploader */}
       {activeTab === 'batch' && (

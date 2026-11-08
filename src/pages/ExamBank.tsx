@@ -1127,26 +1127,15 @@ export default function ExamBank() {
       return;
     }
 
-    // 2. Launch Practice with Question Display Limits
+    // 2. Launch Practice with Full Question Access
     const qList = exam.questions || [];
     if (qList.length === 0) {
       alert("This exam does not have questions attached yet.");
       return;
     }
 
-    const limits = exam.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 };
-    const maxAllowed = limits[userSubscriptionPlan] ?? 0;
-
     let displayQuestions = [...qList];
-    if (hasPurchased || userLevel >= reqLevel) {
-      displayQuestions = [...qList];
-      setPracticeLimitInfo(null);
-    } else if (maxAllowed > 0 && maxAllowed < qList.length) {
-      displayQuestions = qList.slice(0, maxAllowed);
-      setPracticeLimitInfo({ limit: maxAllowed, total: qList.length });
-    } else {
-      setPracticeLimitInfo(null);
-    }
+    setPracticeLimitInfo(null);
 
     const initialAnswers: Record<number, any> = {};
     displayQuestions.forEach((q: any, idx: number) => {
@@ -1281,15 +1270,8 @@ export default function ExamBank() {
   };
 
   const getQuestionLimitPill = (exam: ExamItem) => {
-    const limits = exam.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 };
-    const maxForUser = limits[userSubscriptionPlan] ?? 0;
     const totalQs = exam.questionCount || (exam.questions ? exam.questions.length : 0);
-
-    if (maxForUser === 0 || maxForUser >= totalQs) {
-      return <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Full Access ({totalQs} Qs)</span>;
-    } else {
-      return <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">{maxForUser} Qs on {userSubscriptionPlan.toUpperCase()} Plan</span>;
-    }
+    return <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Full Access ({totalQs} Qs)</span>;
   };
 
   const modalsContent = (
