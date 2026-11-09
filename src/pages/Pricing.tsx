@@ -460,7 +460,7 @@ export default function Pricing() {
                     <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl text-xs space-y-1">
                       <p>1. Go to M-Pesa Menu -&gt; Lipa na M-Pesa</p>
                       <p>2. Select <strong>Buy Goods and Services</strong></p>
-                      <p>3. Till Number: <strong className="text-emerald-700 font-extrabold">892100</strong> (NCKPrep Qbank)</p>
+                      <p>3. Till Number: <strong className="text-emerald-700 font-extrabold">1661665</strong> (NCKPrep Qbank)</p>
                       <p>4. Amount: <strong className="text-slate-900 font-extrabold">Ksh {(selectedPlan.usdPrice * KES_RATE).toLocaleString()}</strong></p>
                     </div>
 

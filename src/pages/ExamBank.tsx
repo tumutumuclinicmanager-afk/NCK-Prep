@@ -556,6 +556,39 @@ export default function ExamBank() {
   const [showRationale, setShowRationale] = useState<Record<number, boolean>>({});
   const [examCompleted, setExamCompleted] = useState(false);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [examTimeRemaining, setExamTimeRemaining] = useState<number>(0);
+
+  useEffect(() => {
+    if (practiceExam && !examCompleted) {
+      setExamTimeRemaining((practiceExam.durationMinutes || 60) * 60);
+    }
+  }, [practiceExam]);
+
+  useEffect(() => {
+    if (!practiceExam || examCompleted) return;
+    const timer = setInterval(() => {
+      setExamTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setExamCompleted(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [practiceExam, examCompleted]);
+
+  const formatExamTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const hrs = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (hrs > 0) {
+      return `${hrs}:${m < 10 ? '0' : ''}${m}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    return `${m}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   // Sync focus mode: pull back navigation bar when student is in practice exam
   useEffect(() => {
@@ -1380,7 +1413,7 @@ export default function ExamBank() {
               <div className="p-4 bg-slate-100 border border-slate-200 rounded-lg text-sm mb-4">
                 <p className="mb-2">1. Go to M-Pesa Menu</p>
                 <p className="mb-2">2. Select Lipa na M-Pesa -&gt; Buy Goods and Services</p>
-                <p className="mb-2">3. Enter Till Number: <strong>123456</strong></p>
+                <p className="mb-2">3. Enter Till Number: <strong>1661665</strong></p>
                 <p className="mb-2">4. Enter Amount: <strong>{selectedBundle.price}</strong></p>
                 <p>5. Enter M-Pesa Pin and confirm.</p>
               </div>
@@ -1618,51 +1651,64 @@ export default function ExamBank() {
 
   if (practiceExam) {
     return (
-      <div className="min-h-screen bg-slate-50/50 pb-20 w-full">
-        <div className="w-full max-w-6xl mx-auto p-3 sm:p-6 md:p-8 space-y-6 animate-in fade-in">
-        <div className="bg-slate-900 text-white rounded-2xl p-5 md:p-6 shadow-lg flex items-center justify-between gap-4">
+      <div className="min-h-screen bg-slate-50/50 pb-10 w-full overflow-y-auto">
+        <div className="w-full max-w-5xl mx-auto p-2 sm:p-4 space-y-3 animate-in fade-in">
+        <div className="bg-slate-900 text-white rounded-xl p-3 md:p-4 shadow-md flex items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 block">
                 {practiceExam.category} • {practiceExam.domain}
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                <Maximize2 className="w-2.5 h-2.5" /> Full-Screen Exam Active (Nav Bar Pulled Back)
+                <Maximize2 className="w-2.5 h-2.5" /> Full-Screen Exam Active
               </span>
             </div>
-            <h2 className="text-xl md:text-2xl font-extrabold tracking-tight mt-1">{practiceExam.title}</h2>
+            <h2 className="text-base md:text-lg font-extrabold tracking-tight mt-0.5">{practiceExam.title}</h2>
           </div>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setExamFocusMode(false);
-              setPracticeExam(null);
-            }}
-            className="text-white border-slate-700 hover:bg-slate-800 gap-2 shrink-0"
-          >
-            <ChevronLeft className="w-4 h-4" /> Exit Exam
-          </Button>
+          <div className="flex items-center gap-3">
+            {!examCompleted && (
+              <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-mono font-extrabold text-xs shadow-xs ${
+                examTimeRemaining < 300 
+                  ? 'bg-rose-600/20 text-rose-300 border-rose-500 animate-pulse' 
+                  : 'bg-slate-800 text-blue-400 border-slate-700'
+              }`}>
+                <Clock className="w-3.5 h-3.5 animate-spin-slow" />
+                <span>⏳ Time Left: {formatExamTime(examTimeRemaining)}</span>
+              </div>
+            )}
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setExamFocusMode(false);
+                setPracticeExam(null);
+              }}
+              className="text-white border-slate-700 hover:bg-slate-800 gap-1.5 shrink-0 text-xs"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Exit
+            </Button>
+          </div>
         </div>
 
         {practiceLimitInfo && !examCompleted && (
-          <div className="bg-amber-50 border border-amber-200 px-6 py-3 rounded-xl text-xs text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-bold">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>{userSubscriptionPlan.toUpperCase()} PLAN PREVIEW: Displaying {practiceLimitInfo.limit} of {practiceLimitInfo.total} total questions.</span>
+          <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 font-bold">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>{userSubscriptionPlan.toUpperCase()} PLAN PREVIEW: {practiceLimitInfo.limit} of {practiceLimitInfo.total} Qs.</span>
             </div>
             <button 
               onClick={() => {
                 setPracticeExam(null);
                 navigate('/dashboard/pricing');
               }}
-              className="text-amber-800 underline font-extrabold hover:text-amber-950 shrink-0"
+              className="text-amber-800 underline font-extrabold hover:text-amber-950 shrink-0 text-xs"
             >
-              Upgrade Plan for All {practiceLimitInfo.total} Qs →
+              Upgrade →
             </button>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-6 relative">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-3 md:p-4 space-y-3 relative">
           <div className="flex justify-end">
             <Button
               variant="outline"
@@ -1809,12 +1855,12 @@ export default function ExamBank() {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="space-y-1">
-                    <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                       {currentQ.questionTypeLabel || 'Single Choice'}
                     </span>
-                    <p className="font-bold text-slate-900 text-base leading-relaxed">
+                    <p className="font-bold text-slate-900 text-sm md:text-base leading-snug">
                       {currentQ.question}
                     </p>
                   </div>
@@ -1930,7 +1976,7 @@ export default function ExamBank() {
                                 setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: opt }));
                                 setShowRationale(prev => ({ ...prev, [currentQuestionIndex]: true }));
                               }}
-                              className={`w-full p-4 rounded-xl border text-left font-medium text-sm transition-all flex items-start gap-3 ${
+                              className={`w-full p-2.5 rounded-lg border text-left font-medium text-xs md:text-sm transition-all flex items-start gap-2.5 ${
                                 isRevealed && isCorrect
                                   ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-bold ring-1 ring-emerald-400'
                                   : isRevealed && isSelected && !isCorrect
@@ -1940,11 +1986,11 @@ export default function ExamBank() {
                                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                               }`}
                             >
-                              <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                                 {String.fromCharCode(65 + i)}
                               </span>
                               <span className="flex-grow">{opt}</span>
-                              {isRevealed && isCorrect && <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
+                              {isRevealed && isCorrect && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
                             </button>
                           );
                         })}
@@ -2188,182 +2234,7 @@ export default function ExamBank() {
         </div>
       )}
 
-      {/* All Exam Categories - Compact, High-Density Curriculum Deck */}
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3 sm:p-3.5 space-y-2.5">
-        {/* Header Row: Title, active filter chip, and group filters in a single tight row */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <div className="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0">
-              <Layers className="w-3.5 h-3.5" />
-            </div>
-            <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
-              Exam Categories & Curriculums
-            </h2>
-            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
-              {dynamicBoardCategories.length} Boards
-            </span>
-            {selectedBoard !== 'All' && (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-100/80 text-blue-900 border border-blue-200 text-[10px] font-bold">
-                Filtered: {selectedBoard}
-                <button 
-                  onClick={() => {
-                    setSelectedBoard('All');
-                    setSelectedExamTypePage(null);
-                  }}
-                  className="hover:text-red-600 transition-colors ml-0.5 cursor-pointer font-black"
-                  title="Clear board filter"
-                >
-                  ✕
-                </button>
-              </span>
-            )}
-          </div>
 
-          {/* High-Level Exam Group Filter Tabs */}
-          <div className="inline-flex items-center gap-0.5 p-0.5 bg-slate-100/90 rounded-lg border border-slate-200 shrink-0">
-            {(['All', 'Entrance Exams', 'Nursing Exams', 'Exit Exams'] as const).map(group => {
-              const isActive = selectedExamGroup === group;
-              let countText = '';
-              if (group === 'Entrance Exams') countText = `${ENTRANCE_EXAMS.length}`;
-              if (group === 'Nursing Exams') countText = `${NURSING_EXAMS.length}`;
-              if (group === 'Exit Exams') countText = `${EXIT_EXAMS.length}`;
-
-              return (
-                <button
-                  key={group}
-                  onClick={() => {
-                    setSelectedExamGroup(group);
-                    setSelectedBoard('All');
-                  }}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-                  }`}
-                >
-                  <span>{group === 'All' ? 'All Boards' : group.replace(' Exams', '')}</span>
-                  {countText && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
-                    }`}>
-                      {countText}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Categories Grid - Compact, fully visible names with no vertical waste */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5">
-          {/* Master Card: All Categories */}
-          <button
-            onClick={() => {
-              setSelectedBoard('All');
-              setSelectedExamTypePage(null);
-              examsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between min-h-[64px] sm:min-h-[68px] cursor-pointer group hover:shadow-xs relative ${
-              selectedBoard === 'All' && !selectedExamTypePage
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-400/40'
-                : 'bg-white border-slate-200 text-slate-800 hover:border-blue-400 hover:bg-slate-50/70'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-1.5 w-full">
-              <span className={`text-[9px] font-black uppercase tracking-wider ${
-                selectedBoard === 'All' && !selectedExamTypePage ? 'text-blue-100' : 'text-slate-400'
-              }`}>
-                Master Bank
-              </span>
-              <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full shrink-0 ${
-                selectedBoard === 'All' && !selectedExamTypePage 
-                  ? 'bg-white/20 text-white' 
-                  : 'bg-blue-50 text-blue-700 border border-blue-100'
-              }`}>
-                {boardQuestionCounts['All'] || 0} Qs
-              </span>
-            </div>
-
-            <div className="mt-1 flex items-center justify-between gap-1">
-              <h3 className={`text-xs sm:text-sm font-black tracking-tight leading-tight truncate ${
-                selectedBoard === 'All' && !selectedExamTypePage ? 'text-white' : 'text-slate-900'
-              }`}>
-                All Categories
-              </h3>
-              {selectedBoard === 'All' && !selectedExamTypePage && (
-                <CheckCircle className="w-3.5 h-3.5 text-white shrink-0" />
-              )}
-            </div>
-          </button>
-
-          {/* Dynamic Board Categories - 100% visible category names, tight & proportional */}
-          {dynamicBoardCategories
-            .filter(catKey => {
-              if (selectedExamGroup === 'Entrance Exams') return (ENTRANCE_EXAMS as readonly string[]).includes(catKey);
-              if (selectedExamGroup === 'Nursing Exams') return (NURSING_EXAMS as readonly string[]).includes(catKey);
-              if (selectedExamGroup === 'Exit Exams') return (EXIT_EXAMS as readonly string[]).includes(catKey);
-              return true;
-            })
-            .map((catKey) => {
-              const count = boardQuestionCounts[catKey] || 0;
-              const isSelected = selectedBoard === catKey;
-              const prominent = getProminentExamMeta(catKey);
-
-              return (
-                <button
-                  key={catKey}
-                  onClick={() => {
-                    if (selectedBoard === catKey) {
-                      setSelectedBoard('All');
-                    } else {
-                      setSelectedBoard(catKey);
-                    }
-                    examsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between min-h-[64px] sm:min-h-[68px] cursor-pointer group hover:shadow-xs relative ${
-                    isSelected
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-400/40'
-                      : `${prominent.cardBg} ${prominent.cardBorder} text-slate-800 hover:border-blue-400`
-                  }`}
-                  title={`${catKey} - ${count} questions`}
-                >
-                  <div className="flex items-center justify-between gap-1.5 w-full">
-                    <span className={`text-[9px] font-black uppercase tracking-wider ${
-                      isSelected 
-                        ? 'text-blue-100' 
-                        : prominent.isProminent 
-                          ? prominent.titleColor 
-                          : 'text-slate-400'
-                    }`}>
-                      {prominent.isProminent ? prominent.accentBadge : 'Curriculum'}
-                    </span>
-                    <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full shrink-0 ${
-                      isSelected
-                        ? 'bg-white/20 text-white'
-                        : prominent.isProminent
-                          ? prominent.pillStyle
-                          : 'bg-slate-100 text-slate-700 border border-slate-200'
-                    }`}>
-                      {count} Qs
-                    </span>
-                  </div>
-
-                  <div className="mt-1 flex items-center justify-between gap-1">
-                    <h3 className={`text-xs sm:text-sm font-black tracking-tight leading-tight break-words ${
-                      isSelected ? 'text-white' : prominent.titleColor
-                    }`}>
-                      {catKey}
-                    </h3>
-                    {isSelected && (
-                      <CheckCircle className="w-3.5 h-3.5 text-white shrink-0" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-        </div>
-      </div>
 
       {/* Controls & Filter Bar - Compact */}
       <div ref={examsSectionRef} className="bg-white p-3 md:p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
@@ -2446,14 +2317,14 @@ export default function ExamBank() {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Just Show the Exams Directly */}
       {viewMode === 'classified' ? (
-        <div className="space-y-6">
-          {Object.keys(groupedExams).length === 0 ? (
+        <div className="space-y-4">
+          {filteredExams.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-3">
               <FolderOpen className="w-12 h-12 text-slate-300 mx-auto" />
               <p className="text-lg font-bold text-slate-700">No exams match your current filters</p>
-              <p className="text-xs text-slate-500">Try resetting search keywords or selecting "All Exam Boards".</p>
+              <p className="text-xs text-slate-500">Try resetting search keywords or filters.</p>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -2469,151 +2340,96 @@ export default function ExamBank() {
               </Button>
             </div>
           ) : (
-            (Object.entries(groupedExams) as [string, ExamItem[]][]).map(([catKey, exams]) => {
-              const isExpanded = expandedCategories[catKey] !== false;
-              const prominent = getProminentExamMeta(catKey);
-
-              return (
-                <div key={catKey} className={`bg-white rounded-xl border shadow-xs overflow-hidden ${
-                  prominent.isProminent ? prominent.cardBorder : 'border-slate-200'
-                }`}>
-                  {/* Classification Category Header */}
-                  <div 
-                    onClick={() => toggleCategory(catKey)}
-                    className={`p-3.5 md:p-4 transition-colors border-b flex items-center justify-between cursor-pointer select-none ${
-                      prominent.isProminent 
-                        ? `${prominent.badgeBg.split(' ')[0]} hover:brightness-95 border-slate-200` 
-                        : 'bg-slate-50/80 hover:bg-slate-100/80 border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg font-bold ${
-                        prominent.isProminent ? prominent.badgeBg : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {isExpanded ? <FolderOpen className="w-5 h-5" /> : <Folder className="w-5 h-5" />}
+            <div className="space-y-3">
+              {filteredExams.map((exam) => {
+                const examProminent = getProminentExamMeta(exam.category || exam.title);
+                return (
+                  <div key={exam.id} className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2 max-w-3xl">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {getPlanBadge(exam.requiredPlan)}
+                        <span className={`px-2.5 py-0.5 border text-[11px] font-extrabold rounded-full ${
+                          examProminent.isProminent ? examProminent.pillStyle : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {exam.category}
+                        </span>
+                        <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-full">
+                          {exam.domain}
+                        </span>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                          exam.difficulty === 'Advanced' ? 'bg-rose-100 text-rose-800' :
+                          exam.difficulty === 'Medium' ? 'bg-amber-100 text-amber-800' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {exam.difficulty}
+                        </span>
+                        {getQuestionLimitPill(exam)}
                       </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className={`text-base md:text-lg font-black ${prominent.titleColor}`}>
-                            {catKey}
-                          </h2>
-                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
-                            prominent.isProminent ? prominent.pillStyle : 'bg-blue-100 text-blue-800 border-blue-200'
-                          }`}>
-                            {boardQuestionCounts[catKey] || 0} Questions Available
-                          </span>
-                          <span className="bg-slate-100 text-slate-600 text-xs font-semibold px-2 py-0.5 rounded-full border border-slate-200">
-                            {exams.length} {exams.length === 1 ? 'Exam Item' : 'Exam Items'}
-                          </span>
+
+                      <h3 className="text-base md:text-lg font-bold text-slate-900">{exam.title}</h3>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                        <div className="flex items-center gap-1">
+                          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                          <span><strong>{exam.questionCount}</strong> Total Questions</span>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{catKey} Licensure & Specialty Practice Collection</p>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span><strong>{exam.durationMinutes}</strong> Minutes</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 hidden sm:inline">
-                        {isExpanded ? 'Collapse' : 'Expand'}
-                      </span>
-                      {isExpanded ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
+                    <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                      <div className="text-left md:text-right">
+                        <span className="text-xs text-slate-400 block font-medium">Access Plan</span>
+                        <span className="text-sm font-extrabold text-slate-900 uppercase">
+                          {(exam.requiredPlan || 'FREE').toUpperCase()}
+                        </span>
+                      </div>
+
+                      <Button 
+                        onClick={() => handleAction(exam)}
+                        className={`gap-2 ${
+                          PLAN_LEVELS[userSubscriptionPlan] < PLAN_LEVELS[exam.requiredPlan || 'free']
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        }`}
+                      >
+                        {PLAN_LEVELS[userSubscriptionPlan] < PLAN_LEVELS[exam.requiredPlan || 'free'] ? (
+                          <><Lock className="w-4 h-4" /> Locked ({exam.requiredPlan?.toUpperCase()})</>
+                        ) : (
+                          <><Play className="w-4 h-4 fill-white" /> Start Practice</>
+                        )}
+                      </Button>
+
+                      {isAdminUser && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => handleAdminEditExam(exam, e)}
+                            className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 gap-1.5"
+                            title="Admin: Edit entire exam blueprint, questions, choices, and rationales"
+                          >
+                            <Edit className="w-3.5 h-3.5 text-blue-500" /> Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => handleAdminDeleteExam(exam, e)}
+                            className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 gap-1.5"
+                            title="Admin Testing Mode: Delete Exam"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Delete
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* Category Items List */}
-                  {isExpanded && (
-                    <div className="divide-y divide-slate-100">
-                      {exams.map((exam) => {
-                        const examProminent = getProminentExamMeta(exam.category || exam.title);
-                        return (
-                        <div key={exam.id} className="p-4 md:p-6 hover:bg-slate-50/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="space-y-2 max-w-3xl">
-                            <div className="flex flex-wrap items-center gap-2">
-                              {getPlanBadge(exam.requiredPlan)}
-                              <span className={`px-2.5 py-0.5 border text-[11px] font-extrabold rounded-full ${
-                                examProminent.isProminent ? examProminent.pillStyle : 'bg-blue-50 text-blue-700 border-blue-200'
-                              }`}>
-                                {exam.category}
-                              </span>
-                              <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-full">
-                                {exam.domain}
-                              </span>
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
-                                exam.difficulty === 'Advanced' ? 'bg-rose-100 text-rose-800' :
-                                exam.difficulty === 'Medium' ? 'bg-amber-100 text-amber-800' :
-                                'bg-emerald-100 text-emerald-800'
-                              }`}>
-                                {exam.difficulty}
-                              </span>
-                              {getQuestionLimitPill(exam)}
-                            </div>
-
-                            <h3 className="text-base md:text-lg font-bold text-slate-900">{exam.title}</h3>
-
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
-                              <div className="flex items-center gap-1">
-                                <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                                <span><strong>{exam.questionCount}</strong> Total Questions</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                <span><strong>{exam.durationMinutes}</strong> Minutes</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between md:justify-end gap-4 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
-                            <div className="text-left md:text-right">
-                              <span className="text-xs text-slate-400 block font-medium">Access Plan</span>
-                              <span className="text-sm font-extrabold text-slate-900 uppercase">
-                                {(exam.requiredPlan || 'FREE').toUpperCase()}
-                              </span>
-                            </div>
-
-                            <Button 
-                              onClick={() => handleAction(exam)}
-                              className={`gap-2 ${
-                                PLAN_LEVELS[userSubscriptionPlan] < PLAN_LEVELS[exam.requiredPlan || 'free']
-                                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                              }`}
-                            >
-                              {PLAN_LEVELS[userSubscriptionPlan] < PLAN_LEVELS[exam.requiredPlan || 'free'] ? (
-                                <><Lock className="w-4 h-4" /> Locked ({exam.requiredPlan?.toUpperCase()})</>
-                              ) : (
-                                <><Play className="w-4 h-4 fill-white" /> Start Practice</>
-                              )}
-                            </Button>
-
-                            {isAdminUser && (
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => handleAdminEditExam(exam, e)}
-                                  className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 gap-1.5"
-                                  title="Admin: Edit entire exam blueprint, questions, choices, and rationales"
-                                >
-                                  <Edit className="w-3.5 h-3.5 text-blue-500" /> Edit Exam
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => handleAdminDeleteExam(exam, e)}
-                                  className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 gap-1.5"
-                                  title="Admin Testing Mode: Delete Exam"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Delete
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       ) : (

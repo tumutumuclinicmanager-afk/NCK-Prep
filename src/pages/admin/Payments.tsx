@@ -38,7 +38,7 @@ export default function Payments() {
           const s = snap.data();
           setStripeAccountEmail(s.stripeAccountEmail || '');
           setStripeLiveKey(s.stripeLiveKey || '');
-          setMpesaTillNumber(s.mpesaTillNumber || '892100');
+          setMpesaTillNumber(s.mpesaTillNumber || '1661665');
           setMpesaBusinessName(s.mpesaBusinessName || 'NursePrep Qbank');
           setPayoutBank(s.payoutBank || '');
         }

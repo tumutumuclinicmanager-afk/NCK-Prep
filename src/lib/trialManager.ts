@@ -2,15 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { db, auth } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
-export const TRIAL_DURATION_DAYS = 14;
+export const TRIAL_DURATION_DAYS = 2;
 export const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000;
 
 export interface TrialState {
   isPaid: boolean;
-  isUnlimited: boolean; // Admin, staff, or paid plan
+  isUnlimited: boolean; // Admin, staff, premium, or paid plan
   isTrial: boolean;
   isExpired: boolean;
-  plan: 'free' | 'basic' | 'gold' | 'platinum' | 'admin' | 'staff';
+  plan: 'free' | 'premium' | 'admin' | 'staff';
   planName: string;
   startDate: string;
   expiresAt: string;
@@ -28,7 +28,7 @@ const DEFAULT_STATE: TrialState = {
   isTrial: true,
   isExpired: false,
   plan: 'free',
-  planName: 'Free Trial',
+  planName: '2-Day Free Trial',
   startDate: new Date().toISOString(),
   expiresAt: new Date(Date.now() + TRIAL_DURATION_MS).toISOString(),
   totalSecondsRemaining: TRIAL_DURATION_DAYS * 86400,
@@ -36,7 +36,7 @@ const DEFAULT_STATE: TrialState = {
   hoursRemaining: 0,
   minutesRemaining: 0,
   secondsRemaining: 0,
-  formattedTimeLeft: '14 Days Remaining'
+  formattedTimeLeft: '2 Days Remaining'
 };
 
 /**
@@ -50,15 +50,15 @@ export function calculateTrialFromDates(
   const normalizedRole = (role || 'student').toLowerCase();
   const normalizedPlan = (planType || 'free').toLowerCase();
 
-  // Admin and Staff have lifetime unlimited access
-  if (normalizedRole === 'admin' || normalizedRole === 'staff') {
+  // Admin, Staff, and Premium Accounts have lifetime unlimited access
+  if (normalizedRole === 'admin' || normalizedRole === 'staff' || normalizedPlan.includes('premium') || normalizedPlan.includes('grandfathered') || normalizedPlan.includes('basic') || normalizedPlan.includes('gold') || normalizedPlan.includes('platinum') || normalizedPlan.includes('silver') || normalizedPlan.includes('surepass')) {
     return {
       isPaid: true,
       isUnlimited: true,
       isTrial: false,
       isExpired: false,
-      plan: normalizedRole as any,
-      planName: normalizedRole === 'admin' ? 'Administrator' : 'Faculty / Staff',
+      plan: normalizedRole === 'admin' ? 'admin' : normalizedRole === 'staff' ? 'staff' : 'premium',
+      planName: normalizedRole === 'admin' ? 'Administrator' : normalizedRole === 'staff' ? 'Faculty / Staff' : 'Premium Account',
       startDate: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       totalSecondsRemaining: 9999999,
@@ -66,29 +66,7 @@ export function calculateTrialFromDates(
       hoursRemaining: 0,
       minutesRemaining: 0,
       secondsRemaining: 0,
-      formattedTimeLeft: 'Unlimited Access'
-    };
-  }
-
-  // Check if user has an active paid subscription tier
-  const isPaid = ['basic', 'gold', 'platinum', 'silver', 'surepass', 'mastery'].some(p => normalizedPlan.includes(p));
-  if (isPaid) {
-    const formattedPlan = normalizedPlan.charAt(0).toUpperCase() + normalizedPlan.slice(1);
-    return {
-      isPaid: true,
-      isUnlimited: true,
-      isTrial: false,
-      isExpired: false,
-      plan: (normalizedPlan.includes('plat') ? 'platinum' : normalizedPlan.includes('gold') ? 'gold' : 'basic') as any,
-      planName: `${formattedPlan} Plan`,
-      startDate: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      totalSecondsRemaining: 9999999,
-      daysRemaining: 365,
-      hoursRemaining: 0,
-      minutesRemaining: 0,
-      secondsRemaining: 0,
-      formattedTimeLeft: 'Active Subscription'
+      formattedTimeLeft: 'Premium Account'
     };
   }
 
@@ -146,7 +124,7 @@ export function calculateTrialFromDates(
     isTrial: true,
     isExpired: false,
     plan: 'free',
-    planName: '14-Day Free Trial',
+    planName: '2-Day Free Trial',
     startDate: new Date(startMs).toISOString(),
     expiresAt: new Date(expireMs).toISOString(),
     totalSecondsRemaining: totalSeconds,
@@ -187,74 +165,57 @@ export async function getOrInitTrial(user: any): Promise<TrialState> {
 
   try {
     let userDocData: any = null;
+    let isExistingAccount = false;
     const userRef = doc(db, 'users', user.uid);
     const snap = await getDoc(userRef);
 
     if (snap.exists()) {
       userDocData = snap.data();
+      isExistingAccount = true;
     } else if (userEmail) {
       const q = query(collection(db, 'users'), where('email', '==', userEmail));
       const qSnap = await getDocs(q);
       if (!qSnap.empty) {
         userDocData = qSnap.docs[0].data();
+        isExistingAccount = true;
       }
     }
 
-    // Check payment transactions
-    let hasPaidRecord = false;
-    let paidPlanName = '';
-    if (userEmail) {
-      const payQ = query(
-        collection(db, 'payments'),
-        where('user', '==', userEmail)
-      );
-      const paySnap = await getDocs(payQ);
-      for (const pDoc of paySnap.docs) {
-        const pData = pDoc.data();
-        if (pData.status === 'Approved' || pData.status === 'Completed') {
-          hasPaidRecord = true;
-          paidPlanName = pData.plan || pData.planName || 'basic';
-          break;
-        }
-      }
+    // Grandfather in all existing accounts as premium accounts
+    let currentPlan = userDocData?.subscriptionPlan || userDocData?.plan || '';
+    if (isExistingAccount) {
+      currentPlan = 'premium';
+      try {
+        await updateDoc(userRef, { subscriptionPlan: 'premium' });
+      } catch (e) {}
+    } else {
+      currentPlan = 'free';
     }
-
-    const currentPlan = hasPaidRecord 
-      ? paidPlanName 
-      : (userDocData?.subscriptionPlan || userDocData?.plan || 'free');
 
     let startDate = userDocData?.trialStartDate || userDocData?.createdAt || userDocData?.added;
 
-    // If new or missing start date, save initial trial start date in Firestore
-    if (!startDate) {
+    // If new or missing start date, save initial trial start date in Firestore for brand new accounts
+    if (!startDate && !isExistingAccount) {
       startDate = new Date().toISOString();
       const expiresAt = new Date(Date.now() + TRIAL_DURATION_MS).toISOString();
       try {
-        if (snap.exists()) {
-          await updateDoc(userRef, {
-            trialStartDate: startDate,
-            trialExpiresAt: expiresAt,
-            subscriptionPlan: currentPlan
-          });
-        } else {
-          await setDoc(userRef, {
-            userId: user.uid,
-            email: userEmail,
-            name: user.displayName || userEmail.split('@')[0],
-            role: role,
-            status: 'Active',
-            subscriptionPlan: currentPlan,
-            trialStartDate: startDate,
-            trialExpiresAt: expiresAt,
-            added: new Date().toISOString().split('T')[0]
-          }, { merge: true });
-        }
+        await setDoc(userRef, {
+          userId: user.uid,
+          email: userEmail,
+          name: user.displayName || userEmail.split('@')[0],
+          role: role,
+          status: 'Active',
+          subscriptionPlan: 'free',
+          trialStartDate: startDate,
+          trialExpiresAt: expiresAt,
+          added: new Date().toISOString().split('T')[0]
+        }, { merge: true });
       } catch (saveErr) {
         console.warn("Could not save trial start date to Firestore:", saveErr);
       }
     }
 
-    const state = calculateTrialFromDates(startDate, currentPlan, userDocData?.role || role);
+    const state = calculateTrialFromDates(startDate, isExistingAccount ? 'premium' : currentPlan, userDocData?.role || role);
     localStorage.setItem(storageKey, JSON.stringify(state));
     return state;
   } catch (err) {
