@@ -10,6 +10,7 @@ export interface PlanItem {
   name: string;
   subtitle: string;
   usdPrice: number;
+  kesPrice: number;
   durationDays: number;
   durationLabel: string;
   popular?: boolean;
@@ -46,35 +47,95 @@ export default function Pricing() {
 
   const plans: PlanItem[] = [
     {
+      id: 'free-tier',
+      name: 'Test Yourself',
+      subtitle: 'Start building confidence with daily practice.',
+      kesPrice: 0,
+      usdPrice: 0,
+      durationDays: 365,
+      durationLabel: 'Forever',
+      popular: false,
+      headerBg: 'bg-slate-100 text-slate-800',
+      badgeBg: 'bg-slate-200 text-slate-800',
+      badgeText: 'KSH 0 / FOREVER',
+      features: [
+        '20 practice questions/day',
+        'Readiness snapshot',
+        'Community study groups',
+        'Tutor booking access',
+        'Upgrade when you need full exam prep'
+      ]
+    },
+    {
+      id: 'exam-boost-daily',
+      name: 'Exam Boost Daily',
+      subtitle: 'A focused 24-hour push for active revision.',
+      kesPrice: 99,
+      usdPrice: 1,
+      durationDays: 1,
+      durationLabel: '1 Day Pass',
+      popular: false,
+      headerBg: 'bg-blue-50 text-blue-900',
+      badgeBg: 'bg-blue-100 text-blue-900',
+      badgeText: 'KSH 99 / DAY',
+      features: [
+        '120 practice questions/day',
+        'AI explanations & rationales',
+        '2 mock exams (1 download)',
+        'Readiness analytics',
+        'Flashcards'
+      ]
+    },
+    {
+      id: 'exam-boost-weekly',
+      name: 'Exam Boost Weekly',
+      subtitle: 'Your mass-market exam prep plan for a serious week.',
+      kesPrice: 499,
+      usdPrice: 4,
+      durationDays: 7,
+      durationLabel: '7 Day Pass',
+      popular: true,
+      headerBg: 'bg-gradient-to-br from-slate-900 to-blue-950 text-white',
+      badgeBg: 'bg-amber-500 text-white',
+      badgeText: 'KSH 499 / WEEK - MOST POPULAR',
+      features: [
+        '200 practice questions/day',
+        '7-day full access',
+        'AI explanations & rationales',
+        '3 mock exams (2 downloads)',
+        'Flashcards and analytics',
+        'Personalized revision plan included',
+        'Download questions you answered incorrectly'
+      ]
+    },
+    {
       id: 'nck-complete-pass',
       name: 'NCK Licensure Complete All-Inclusive Pass',
-      subtitle: 'One-time payment, no monthly fees! Instant unlimited access via M-Pesa.',
+      subtitle: 'One-time payment, no monthly fees! Guaranteed pass warranty.',
+      kesPrice: 3000,
       usdPrice: 23,
       durationDays: 90,
-      durationLabel: 'Ksh 3,000 / Full Access',
-      popular: true,
-      guaranteedPassBadge: true,
+      durationLabel: 'Full Access',
+      popular: false,
       headerBg: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white',
       badgeBg: 'bg-amber-400 text-slate-950',
       badgeText: 'KSH 3,000 - GUARANTEED PASS',
       features: [
         'Guaranteed Pass Warranty',
-        'Full access to all NCK Registered Nurse (RN) FQE & NGN question banks.',
+        'Unlimited NCK Registered Nurse (RN) FQE & NGN question banks.',
         'NCK Licensure Predictor Adaptive Tests',
         'Cheat sheet for every single question.',
         'Video review & explanations for every question.',
         'Peer performance comparison & analytics.',
         '+6,000 NCK Licensure practice questions & case studies.',
-        'Readiness Assessments & Mock Tests.',
-        'Free Qbank Reset & Unlimited Practice',
-        'Exam interface that mimics the real NCK exam.',
-        'Live Webinars Every Week & Educator Support.'
+        'Readiness Assessments & Mock Tests.'
       ]
     }
   ];
 
-  const formatPrice = (usd: number) => {
-    return `Ksh 3,000`;
+  const formatPrice = (plan: PlanItem) => {
+    if (plan.kesPrice === 0) return 'KSh 0';
+    return `KSh ${plan.kesPrice.toLocaleString()}`;
   };
 
   const handleSelectPlan = (plan: PlanItem) => {
@@ -134,7 +195,7 @@ export default function Pricing() {
     setIsSubmitting(true);
     try {
       const userEmail = auth.currentUser.email || auth.currentUser.uid;
-      const kesAmount = 3000;
+      const kesAmount = selectedPlan.kesPrice;
       let refCode = mpesaRef;
 
       if (mpesaMode === 'stk') {
@@ -230,13 +291,13 @@ export default function Pricing() {
             NCK Registered Nurse (RN) FQE Packages
           </h1>
           <p className="text-slate-600 text-base md:text-lg font-medium">
-            One-time payment, no monthly fees! Guaranteed pass warranty for US & International Nursing Students.
+            One-time payment, no monthly fees! Guaranteed pass warranty for Kenyan Nursing Students.
           </p>
 
         </div>
 
         {/* Pricing Cards Grid */}
-        <div id="pricing-grid" className="max-w-xl mx-auto pt-4">
+        <div id="pricing-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
           {plans.map((plan) => (
             <div
               key={plan.id}
@@ -246,24 +307,24 @@ export default function Pricing() {
             >
               {plan.popular && (
                 <div className="bg-amber-500 text-white text-[11px] font-extrabold uppercase tracking-widest text-center py-1.5">
-                  ★ MOST POPULAR CHOICE FOR US NURSES ★
+                  ★ MOST POPULAR CHOICE FOR KENYAN NURSES ★
                 </div>
               )}
 
-              {/* Header Box styled exactly like Naxlex curved top container */}
-              <div className="p-8 text-center border-b border-slate-100 space-y-3">
-                <div className={`mx-auto w-full py-6 rounded-3xl ${plan.headerBg} shadow-inner flex flex-col items-center justify-center`}>
-                  <span className="text-3xl md:text-4xl font-black tracking-tight">
-                    {formatPrice(plan.usdPrice)}
-                    <span className="text-base font-bold opacity-80">/ {plan.durationDays} Days</span>
+              {/* Header Box */}
+              <div className="p-6 text-center border-b border-slate-100 space-y-3">
+                <div className={`mx-auto w-full py-5 rounded-2xl ${plan.headerBg} shadow-inner flex flex-col items-center justify-center`}>
+                  <span className="text-2xl md:text-3xl font-black tracking-tight">
+                    {formatPrice(plan)}
                   </span>
+                  <span className="text-xs font-bold opacity-80 mt-0.5">{plan.durationLabel}</span>
                 </div>
 
-                <div className="pt-2">
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-2">
+                <div className="pt-1">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
                     {plan.name}
                   </h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-1">
+                  <p className="text-[11px] text-slate-500 font-semibold mt-1 leading-relaxed">
                     {plan.subtitle}
                   </p>
                 </div>
@@ -319,14 +380,14 @@ export default function Pricing() {
           ))}
         </div>
 
-        {/* American Market Features & Guarantee Section */}
+        {/* Kenyan Market Features & Guarantee Section */}
         <div className="mt-16 bg-white rounded-3xl border border-slate-200 p-8 md:p-12 shadow-xs space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="text-2xl font-black text-slate-900">
-              Why US Nursing Candidates Trust NCKPrep
+              Why Kenyan Nursing Candidates Trust NCKPrep
             </h2>
             <p className="text-slate-500 text-sm">
-              Built according to NCSBN Clinical Judgment Measurement Model (NCK Registered Nurse (RN) FQE & NGN Standards).
+              Built according to Nursing Council of Kenya NCK Clinical Judgment & FQE Licensure Standards.
             </p>
           </div>
 

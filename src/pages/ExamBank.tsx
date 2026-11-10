@@ -9,7 +9,7 @@ import {
   Bookmark, BookmarkCheck, Trash2, Star, Lock, Crown, ShieldCheck, Calculator, GripVertical,
   Maximize2, Minimize2, ShieldAlert, RotateCcw, Plus, Edit
 } from 'lucide-react';
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, where, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, where, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ALL_QUIZ_QUESTIONS, normalizeExamCategory, ALL_EXAM_TYPES, ENTRANCE_EXAMS, NURSING_EXAMS, EXIT_EXAMS, sortExamCategories, POPULAR_EXAM_ORDER } from '@/data/quizQuestions';
@@ -273,6 +273,9 @@ interface FavoriteItem {
 
 const PLAN_LEVELS: Record<string, number> = {
   free: 1,
+  daily: 2,
+  weekly: 3,
+  pass: 4,
   basic: 2,
   gold: 3,
   platinum: 4
@@ -530,6 +533,34 @@ export default function ExamBank() {
     setTimeout(() => setFavoriteToast(null), 3000);
   };
 
+  const handleSyncLocalExamsToCloud = async () => {
+    try {
+      const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+      if (localExams.length === 0) {
+        alert("No local custom exams found in localStorage to sync.");
+        return;
+      }
+      let syncedCount = 0;
+      for (const ex of localExams) {
+        try {
+          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
+            ...ex,
+            isPublished: true,
+            updatedAt: new Date().toISOString()
+          });
+          syncedCount++;
+        } catch (e) {
+          console.warn('Error syncing exam doc:', e);
+        }
+      }
+      alert(`Successfully synced ${syncedCount} local exam(s) to Cloud Firestore! They are now visible on all devices.`);
+      fetchAllExamsAndQuestions();
+    } catch (err) {
+      console.error('Error in sync:', err);
+      alert('Error syncing exams to cloud.');
+    }
+  };
+
   // Favorites / Bookmarks state
   const [favoritesList, setFavoritesList] = useState<FavoriteItem[]>([]);
   const [favoriteToast, setFavoriteToast] = useState<string | null>(null);
@@ -649,9 +680,9 @@ export default function ExamBank() {
         
         if (cachedPlan) {
           const plan = cachedPlan.toLowerCase();
-          if (plan.includes('plat') || plan.includes('master')) setUserSubscriptionPlan('platinum');
-          else if (plan.includes('gold') || plan.includes('sure')) setUserSubscriptionPlan('gold');
-          else if (plan.includes('basic') || plan.includes('silver')) setUserSubscriptionPlan('basic');
+          if (plan.includes('week') || plan.includes('499')) setUserSubscriptionPlan('weekly' as any);
+          else if (plan.includes('day') || plan.includes('99') || plan.includes('daily')) setUserSubscriptionPlan('daily' as any);
+          else if (plan.includes('pass') || plan.includes('complete') || plan.includes('3000') || plan.includes('plat') || plan.includes('master') || plan.includes('gold') || plan.includes('sure')) setUserSubscriptionPlan('pass' as any);
           else setUserSubscriptionPlan('free');
         }
 
@@ -673,9 +704,9 @@ export default function ExamBank() {
 
           if (userPlanFound) {
             const plan = userPlanFound;
-            if (plan.includes('plat') || plan.includes('master')) setUserSubscriptionPlan('platinum');
-            else if (plan.includes('gold') || plan.includes('sure')) setUserSubscriptionPlan('gold');
-            else if (plan.includes('basic') || plan.includes('silver')) setUserSubscriptionPlan('basic');
+            if (plan.includes('week') || plan.includes('499')) setUserSubscriptionPlan('weekly' as any);
+            else if (plan.includes('day') || plan.includes('99') || plan.includes('daily')) setUserSubscriptionPlan('daily' as any);
+            else if (plan.includes('pass') || plan.includes('complete') || plan.includes('3000') || plan.includes('plat') || plan.includes('master') || plan.includes('gold') || plan.includes('sure')) setUserSubscriptionPlan('pass' as any);
             else setUserSubscriptionPlan('free');
             
             // Sync cache
@@ -847,11 +878,35 @@ export default function ExamBank() {
       const dbExams: ExamItem[] = [];
       const examDocsQuestions: any[] = [];
 
-      // 1. Fetch Firestore exams collection with resilient error handling
+      // 1. Fetch Firestore exams collection with resilient error handling and auto-seeding
       try {
         const examsSnap = await getDocs(query(collection(db, 'exams')));
-        if (!examsSnap.empty) {
-          examsSnap.docs.forEach(docSnap => {
+        if (examsSnap.empty) {
+          // Auto-seed default exam bundles to Firestore for cross-device visibility
+          for (const bundle of defaultExamBundles) {
+            try {
+              await setDoc(doc(db, 'exams', bundle.id), {
+                title: bundle.title,
+                category: bundle.category,
+                domain: bundle.domain,
+                price: bundle.price,
+                questionCount: bundle.questionCount,
+                durationMinutes: bundle.durationMinutes,
+                difficulty: bundle.difficulty,
+                requiredPlan: bundle.requiredPlan || 'free',
+                questions: bundle.questions || [],
+                isPublished: true,
+                createdAt: new Date().toISOString()
+              });
+            } catch (seedErr) {
+              console.warn('Auto-seed note:', seedErr);
+            }
+          }
+        }
+
+        const freshExamsSnap = await getDocs(query(collection(db, 'exams')));
+        if (!freshExamsSnap.empty) {
+          freshExamsSnap.docs.forEach(docSnap => {
             const data = docSnap.data();
             
             // Hide unpublished/draft exams for students
@@ -1182,8 +1237,18 @@ export default function ExamBank() {
       return;
     }
 
-    let displayQuestions = [...qList];
+    let qLimit = qList.length;
+    if (!isAdminUser && !hasPurchased) {
+      if (userSubscriptionPlan === 'free') qLimit = Math.min(qList.length, 20);
+      else if (userSubscriptionPlan === 'daily') qLimit = Math.min(qList.length, 120);
+      else if (userSubscriptionPlan === 'weekly') qLimit = Math.min(qList.length, 200);
+    }
+
+    let displayQuestions = qList.slice(0, qLimit);
     setPracticeLimitInfo(null);
+    if (qLimit < qList.length && !isAdminUser && !hasPurchased) {
+      setPracticeLimitInfo({ limit: qLimit, total: qList.length });
+    }
 
     const initialAnswers: Record<number, any> = {};
     displayQuestions.forEach((q: any, idx: number) => {
@@ -2110,6 +2175,15 @@ export default function ExamBank() {
               className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold gap-1.5 shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" /> Create New Exam
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncLocalExamsToCloud}
+              className="text-xs text-purple-300 border-purple-700/60 hover:bg-purple-900/40 gap-1.5"
+              title="Sync local custom exams to cloud Firestore so they appear on other devices"
+            >
+              <Database className="w-3.5 h-3.5 text-purple-400" /> Sync Exams to Cloud
             </Button>
             <Button
               variant="outline"

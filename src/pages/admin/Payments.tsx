@@ -306,7 +306,7 @@ export default function Payments() {
               <textarea
                 value={payoutBank}
                 onChange={(e) => setPayoutBank(e.target.value)}
-                placeholder="e.g. Chase Bank US (Account: **** 4892, Routing: 021000021) or Equity Bank Kenya"
+                placeholder="e.g. Equity Bank Kenya (Account: **** 4892)"
                 rows={2}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-600"
               />
@@ -324,13 +324,13 @@ export default function Payments() {
           <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl space-y-4 shadow-md">
             <h4 className="font-extrabold text-base flex items-center gap-2">
               <Key className="w-5 h-5 text-amber-400" />
-              How Payments Work in NursePrep
+              How Payments Work in NCKPrep
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-300 leading-relaxed">
               <div className="p-4 bg-slate-800 rounded-xl border border-slate-700 space-y-1">
-                <span className="font-bold text-amber-300 block text-sm mb-1">1. US & Global Credit Card Payouts</span>
+                <span className="font-bold text-amber-300 block text-sm mb-1">1. Global Credit Card Payouts</span>
                 <p>
-                  Connect your <strong>Stripe Dashboard</strong> (https://dashboard.stripe.com) to receive credit/debit card payments in USD ($). Stripe automatically deposits funds directly into your linked US or international bank account daily or weekly.
+                  Connect your <strong>Stripe Dashboard</strong> (https://dashboard.stripe.com) to receive credit/debit card payments in USD ($). Stripe automatically deposits funds directly into your linked bank account daily or weekly.
                 </p>
               </div>
 
