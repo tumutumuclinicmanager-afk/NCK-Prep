@@ -13,6 +13,8 @@ const DEFAULT_EXAM_MODES = [
   'NCK Nursing Ethics & Professional Jurisprudence'
 ];
 
+import { ALL_QUIZ_QUESTIONS } from '@/data/quizQuestions';
+
 export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?: number }) {
   const [questions, setQuestions] = useState<QuestionData[]>([]);
   const [exams, setExams] = useState<any[]>([]);
@@ -175,39 +177,54 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
       const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
       const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
       
-      if (localExams.length === 0 && localQuestions.length === 0) {
-        alert("No local custom exams or questions found in localStorage to sync.");
-        return;
-      }
       let syncedExamsCount = 0;
       let syncedQuestionsCount = 0;
 
+      // 1. Sync local custom exams
       for (const ex of localExams) {
         try {
           await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
             ...ex,
             isPublished: true,
             updatedAt: new Date().toISOString()
-          });
+          }, { merge: true });
           syncedExamsCount++;
         } catch (e) {
-          console.warn('Error syncing exam doc:', e);
+          console.warn('Error syncing custom exam:', e);
         }
       }
 
+      // 2. Sync ALL_QUIZ_QUESTIONS to Firestore questions collection
+      if (typeof ALL_QUIZ_QUESTIONS !== 'undefined' && Array.isArray(ALL_QUIZ_QUESTIONS)) {
+        for (const q of ALL_QUIZ_QUESTIONS) {
+          try {
+            const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
+            await setDoc(doc(db, 'questions', qId), {
+              ...q,
+              updatedAt: new Date().toISOString()
+            }, { merge: true });
+            syncedQuestionsCount++;
+          } catch (e) {
+            console.warn('Error syncing quiz question:', e);
+          }
+        }
+      }
+
+      // 3. Sync local custom questions
       for (const q of localQuestions) {
         try {
-          await setDoc(doc(db, 'questions', q.id || `q-${Math.random()}`), {
+          const qId = q.id ? String(q.id) : `q-custom-${Math.random().toString(36).substring(2, 9)}`;
+          await setDoc(doc(db, 'questions', qId), {
             ...q,
             updatedAt: new Date().toISOString()
-          });
+          }, { merge: true });
           syncedQuestionsCount++;
         } catch (e) {
-          console.warn('Error syncing question doc:', e);
+          console.warn('Error syncing custom question:', e);
         }
       }
 
-      alert(`Successfully synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore!`);
+      alert(`Cloud Sync Successful! Synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`);
       fetchData();
     } catch (err: any) {
       alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
