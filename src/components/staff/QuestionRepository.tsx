@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Trash2, Tag, BookOpen, Layers, RefreshCw, FileText, CheckCircle2, ChevronDown, ChevronUp, Database } from 'lucide-react';
+import { Search, Filter, Trash2, Tag, BookOpen, Layers, RefreshCw, FileText, CheckCircle2, ChevronDown, ChevronUp, Database, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { collection, getDocs, deleteDoc, doc, query, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -172,7 +172,12 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
     return matchesSearch && matchesMode && matchesUnit && matchesType;
   });
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
+
   const handleSyncLocalExamsToCloud = async () => {
+    setIsSyncing(true);
+    setSyncToastMessage(null);
     try {
       const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
       const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
@@ -224,15 +229,34 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
         }
       }
 
-      alert(`Cloud Sync Successful! Synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`);
+      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`;
+      setSyncToastMessage(msg);
+      alert(msg);
       fetchData();
     } catch (err: any) {
-      alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
+      const errMsg = `Cloud sync failed: ${err?.message || 'Unknown error'}`;
+      setSyncToastMessage(errMsg);
+      alert(errMsg);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden space-y-3">
+      {/* Sync Toast Banner */}
+      {syncToastMessage && (
+        <div className="mx-6 mt-4 bg-emerald-50 border border-emerald-300 text-emerald-900 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold animate-in fade-in shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{syncToastMessage}</span>
+          </div>
+          <button onClick={() => setSyncToastMessage(null)} className="text-emerald-700 hover:text-emerald-900 p-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Header & Controls */}
       <div className="p-6 border-b border-slate-200 space-y-4 bg-slate-50/50">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -245,10 +269,12 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
               variant="outline" 
               size="sm" 
               onClick={handleSyncLocalExamsToCloud}
+              disabled={isSyncing}
               className="text-xs text-purple-700 border-purple-300 hover:bg-purple-50 gap-1.5"
               title="Sync local custom exams and questions to cloud Firestore"
             >
-              <Database className="w-3.5 h-3.5 text-purple-600" /> Sync Exams to Cloud
+              <Database className={`w-3.5 h-3.5 text-purple-600 ${isSyncing ? 'animate-spin' : ''}`} /> 
+              {isSyncing ? 'Syncing...' : 'Sync Exams to Cloud'}
             </Button>
             <Button 
               variant="outline" 

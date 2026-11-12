@@ -533,7 +533,12 @@ export default function ExamBank() {
     setTimeout(() => setFavoriteToast(null), 3000);
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null);
+
   const handleSyncLocalExamsToCloud = async () => {
+    setIsSyncing(true);
+    setSyncToastMessage(null);
     try {
       const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
       const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
@@ -571,7 +576,7 @@ export default function ExamBank() {
         }
       }
 
-      // 3. Sync ALL_QUIZ_QUESTIONS (the 1000+ question bank) to Firestore questions collection
+      // 3. Sync ALL_QUIZ_QUESTIONS to Firestore questions collection
       if (typeof ALL_QUIZ_QUESTIONS !== 'undefined' && Array.isArray(ALL_QUIZ_QUESTIONS)) {
         for (const q of ALL_QUIZ_QUESTIONS) {
           try {
@@ -601,11 +606,17 @@ export default function ExamBank() {
         }
       }
 
-      alert(`Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all exams and questions.`);
+      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`;
+      setSyncToastMessage(msg);
+      alert(msg);
       fetchAllExamsAndQuestions();
     } catch (err: any) {
       console.error('Error in sync:', err);
-      alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
+      const errMsg = `Cloud sync failed: ${err?.message || 'Unknown error'}`;
+      setSyncToastMessage(errMsg);
+      alert(errMsg);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -2178,6 +2189,19 @@ export default function ExamBank() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-2.5 sm:space-y-3">
+      {/* Sync Toast Banner */}
+      {syncToastMessage && (
+        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold animate-in fade-in shadow-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{syncToastMessage}</span>
+          </div>
+          <button onClick={() => setSyncToastMessage(null)} className="text-emerald-700 hover:text-emerald-900 p-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Admin Testing Mode Banner */}
       {isAdminUser && (
         <div className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 text-white p-4 sm:p-5 rounded-2xl border border-rose-800/80 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -2228,10 +2252,12 @@ export default function ExamBank() {
               variant="outline"
               size="sm"
               onClick={handleSyncLocalExamsToCloud}
+              disabled={isSyncing}
               className="text-xs text-purple-300 border-purple-700/60 hover:bg-purple-900/40 gap-1.5"
               title="Sync local custom exams to cloud Firestore so they appear on other devices"
             >
-              <Database className="w-3.5 h-3.5 text-purple-400" /> Sync Exams to Cloud
+              <Database className={`w-3.5 h-3.5 text-purple-400 ${isSyncing ? 'animate-spin' : ''}`} /> 
+              {isSyncing ? 'Syncing to Cloud...' : 'Sync Exams to Cloud'}
             </Button>
             <Button
               variant="outline"
