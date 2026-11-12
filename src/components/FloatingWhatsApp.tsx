@@ -58,6 +58,13 @@ export function FloatingWhatsApp() {
 
   const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const phoneRegex = /^0[0-9]{9}$/;
+    if (!phoneRegex.test(schedulePhone.trim())) {
+      alert("Please enter a valid 10-digit phone number starting with 0 (e.g. 0712345678).");
+      return;
+    }
+
     setIsSubmittingSchedule(true);
     const userEmail = auth.currentUser?.email || localStorage.getItem('userEmail') || 'Guest Student';
     const scheduleId = `SCH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -276,11 +283,17 @@ export function FloatingWhatsApp() {
                   <input
                     type="tel"
                     required
+                    maxLength={10}
+                    pattern="^0[0-9]{9}$"
                     value={schedulePhone}
-                    onChange={(e) => setSchedulePhone(e.target.value)}
-                    placeholder="e.g. 0712345678"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-600"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setSchedulePhone(val);
+                    }}
+                    placeholder="0712345678"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-600 font-mono"
                   />
+                  <p className="text-[10px] text-slate-400">Must be exactly 10 digits and start with 0 (e.g., 0712345678)</p>
                 </div>
 
                 <div className="space-y-1.5">

@@ -492,6 +492,49 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
     setFeatures(prev => prev.filter(f => f !== feat));
   };
 
+  const handleSyncLocalExamsToCloud = async () => {
+    try {
+      const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+      const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+      
+      if (localExams.length === 0 && localQuestions.length === 0) {
+        alert("No local custom exams or questions found in localStorage to sync.");
+        return;
+      }
+      let syncedExamsCount = 0;
+      let syncedQuestionsCount = 0;
+
+      for (const ex of localExams) {
+        try {
+          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
+            ...ex,
+            isPublished: true,
+            updatedAt: new Date().toISOString()
+          });
+          syncedExamsCount++;
+        } catch (e) {
+          console.warn('Error syncing exam doc:', e);
+        }
+      }
+
+      for (const q of localQuestions) {
+        try {
+          await setDoc(doc(db, 'questions', q.id || `q-${Math.random()}`), {
+            ...q,
+            updatedAt: new Date().toISOString()
+          });
+          syncedQuestionsCount++;
+        } catch (e) {
+          console.warn('Error syncing question doc:', e);
+        }
+      }
+
+      alert(`Successfully synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore!`);
+    } catch (err: any) {
+      alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
   // Main Save Exam Handler
   const handleSaveExam = async () => {
     if (!title.trim()) {
@@ -646,6 +689,15 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncLocalExamsToCloud}
+              className="text-xs text-purple-300 border-purple-700/60 hover:bg-purple-900/40 gap-1.5"
+              title="Sync local custom exams and questions to cloud Firestore"
+            >
+              <Database className="w-3.5 h-3.5 text-purple-400" /> Sync to Cloud
+            </Button>
             <Button
               variant="outline"
               size="sm"

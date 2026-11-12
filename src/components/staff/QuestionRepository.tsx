@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Trash2, Tag, BookOpen, Layers, RefreshCw, FileText, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, Trash2, Tag, BookOpen, Layers, RefreshCw, FileText, CheckCircle2, ChevronDown, ChevronUp, Database } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { collection, getDocs, deleteDoc, doc, query, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, query, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { QuestionData } from '@/types';
 
@@ -170,6 +170,50 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
     return matchesSearch && matchesMode && matchesUnit && matchesType;
   });
 
+  const handleSyncLocalExamsToCloud = async () => {
+    try {
+      const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
+      const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+      
+      if (localExams.length === 0 && localQuestions.length === 0) {
+        alert("No local custom exams or questions found in localStorage to sync.");
+        return;
+      }
+      let syncedExamsCount = 0;
+      let syncedQuestionsCount = 0;
+
+      for (const ex of localExams) {
+        try {
+          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
+            ...ex,
+            isPublished: true,
+            updatedAt: new Date().toISOString()
+          });
+          syncedExamsCount++;
+        } catch (e) {
+          console.warn('Error syncing exam doc:', e);
+        }
+      }
+
+      for (const q of localQuestions) {
+        try {
+          await setDoc(doc(db, 'questions', q.id || `q-${Math.random()}`), {
+            ...q,
+            updatedAt: new Date().toISOString()
+          });
+          syncedQuestionsCount++;
+        } catch (e) {
+          console.warn('Error syncing question doc:', e);
+        }
+      }
+
+      alert(`Successfully synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore!`);
+      fetchData();
+    } catch (err: any) {
+      alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Header & Controls */}
@@ -179,15 +223,26 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
             <h3 className="font-bold text-slate-900 text-lg">Lecturer Question Bank ({filteredQuestions.length})</h3>
             <p className="text-slate-500 text-xs">Search, filter, move, and assign published questions across exam modes & specific exams</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchData} 
-            disabled={loading}
-            className="text-xs gap-1"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Bank
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSyncLocalExamsToCloud}
+              className="text-xs text-purple-700 border-purple-300 hover:bg-purple-50 gap-1.5"
+              title="Sync local custom exams and questions to cloud Firestore"
+            >
+              <Database className="w-3.5 h-3.5 text-purple-600" /> Sync Exams to Cloud
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchData} 
+              disabled={loading}
+              className="text-xs gap-1"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Bank
+            </Button>
+          </div>
         </div>
 
         {/* Filters Grid */}
