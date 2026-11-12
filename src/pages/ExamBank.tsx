@@ -536,11 +536,15 @@ export default function ExamBank() {
   const handleSyncLocalExamsToCloud = async () => {
     try {
       const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
-      if (localExams.length === 0) {
-        alert("No local custom exams found in localStorage to sync.");
+      const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
+      
+      if (localExams.length === 0 && localQuestions.length === 0) {
+        alert("No local custom exams or questions found in localStorage to sync.");
         return;
       }
-      let syncedCount = 0;
+      let syncedExamsCount = 0;
+      let syncedQuestionsCount = 0;
+
       for (const ex of localExams) {
         try {
           await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
@@ -548,16 +552,29 @@ export default function ExamBank() {
             isPublished: true,
             updatedAt: new Date().toISOString()
           });
-          syncedCount++;
+          syncedExamsCount++;
         } catch (e) {
           console.warn('Error syncing exam doc:', e);
         }
       }
-      alert(`Successfully synced ${syncedCount} local exam(s) to Cloud Firestore! They are now visible on all devices.`);
+
+      for (const q of localQuestions) {
+        try {
+          await setDoc(doc(db, 'questions', q.id || `q-${Math.random()}`), {
+            ...q,
+            updatedAt: new Date().toISOString()
+          });
+          syncedQuestionsCount++;
+        } catch (e) {
+          console.warn('Error syncing question doc:', e);
+        }
+      }
+
+      alert(`Successfully synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore! They are now visible on all devices.`);
       fetchAllExamsAndQuestions();
     } catch (err) {
       console.error('Error in sync:', err);
-      alert('Error syncing exams to cloud.');
+      alert('Error syncing items to cloud.');
     }
   };
 

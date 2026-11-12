@@ -48,91 +48,22 @@ export function calculateTrialFromDates(
   role: string = 'student'
 ): TrialState {
   const normalizedRole = (role || 'student').toLowerCase();
-  const normalizedPlan = (planType || 'free').toLowerCase();
-
-  // Admin, Staff, and Premium Accounts have lifetime unlimited access
-  if (normalizedRole === 'admin' || normalizedRole === 'staff' || normalizedPlan.includes('premium') || normalizedPlan.includes('grandfathered') || normalizedPlan.includes('basic') || normalizedPlan.includes('gold') || normalizedPlan.includes('platinum') || normalizedPlan.includes('silver') || normalizedPlan.includes('surepass')) {
-    return {
-      isPaid: true,
-      isUnlimited: true,
-      isTrial: false,
-      isExpired: false,
-      plan: normalizedRole === 'admin' ? 'admin' : normalizedRole === 'staff' ? 'staff' : 'premium',
-      planName: normalizedRole === 'admin' ? 'Administrator' : normalizedRole === 'staff' ? 'Faculty / Staff' : 'Premium Account',
-      startDate: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      totalSecondsRemaining: 9999999,
-      daysRemaining: 365,
-      hoursRemaining: 0,
-      minutesRemaining: 0,
-      secondsRemaining: 0,
-      formattedTimeLeft: 'Premium Account'
-    };
-  }
-
-  // Parse start date or fallback
-  let startMs = Date.now();
-  if (startDateStr) {
-    const parsed = new Date(startDateStr).getTime();
-    if (!isNaN(parsed)) {
-      startMs = parsed;
-    }
-  }
-
-  const expireMs = startMs + TRIAL_DURATION_MS;
-  const nowMs = Date.now();
-  const diffMs = expireMs - nowMs;
-  const isExpired = diffMs <= 0;
-
-  if (isExpired) {
-    return {
-      isPaid: false,
-      isUnlimited: false,
-      isTrial: true,
-      isExpired: true,
-      plan: 'free',
-      planName: 'Trial Expired',
-      startDate: new Date(startMs).toISOString(),
-      expiresAt: new Date(expireMs).toISOString(),
-      totalSecondsRemaining: 0,
-      daysRemaining: 0,
-      hoursRemaining: 0,
-      minutesRemaining: 0,
-      secondsRemaining: 0,
-      formattedTimeLeft: 'Trial Expired'
-    };
-  }
-
-  const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  let formatted = '';
-  if (days > 0) {
-    formatted = `${days}d ${hours}h left`;
-  } else if (hours > 0) {
-    formatted = `${hours}h ${minutes}m left`;
-  } else {
-    formatted = `${minutes}m ${seconds}s left`;
-  }
 
   return {
-    isPaid: false,
-    isUnlimited: false,
-    isTrial: true,
+    isPaid: true,
+    isUnlimited: true,
+    isTrial: false,
     isExpired: false,
-    plan: 'free',
-    planName: '2-Day Free Trial',
-    startDate: new Date(startMs).toISOString(),
-    expiresAt: new Date(expireMs).toISOString(),
-    totalSecondsRemaining: totalSeconds,
-    daysRemaining: days,
-    hoursRemaining: hours,
-    minutesRemaining: minutes,
-    secondsRemaining: seconds,
-    formattedTimeLeft: formatted
+    plan: normalizedRole === 'admin' ? 'admin' : normalizedRole === 'staff' ? 'staff' : 'premium',
+    planName: normalizedRole === 'admin' ? 'Administrator' : normalizedRole === 'staff' ? 'Faculty / Staff' : 'Active Student Account',
+    startDate: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    totalSecondsRemaining: 9999999,
+    daysRemaining: 365,
+    hoursRemaining: 0,
+    minutesRemaining: 0,
+    secondsRemaining: 0,
+    formattedTimeLeft: 'Active Account'
   };
 }
 
