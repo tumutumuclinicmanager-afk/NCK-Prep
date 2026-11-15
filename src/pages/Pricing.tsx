@@ -40,7 +40,7 @@ export default function Pricing() {
   // Form states for M-Pesa
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [mpesaRef, setMpesaRef] = useState('');
-  const [mpesaMode, setMpesaMode] = useState<'stk' | 'till'>('stk');
+  const [mpesaMode, setMpesaMode] = useState<'stk' | 'till'>('till');
 
   // Exchange rate: 1 USD = 130 KES
   const KES_RATE = 130;
@@ -144,6 +144,8 @@ export default function Pricing() {
       return;
     }
     setSelectedPlan(plan);
+    setPaymentMethod('mpesa');
+    setMpesaMode('till');
     setPaymentSuccessMessage(null);
     setShowPaymentModal(true);
   };

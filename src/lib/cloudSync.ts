@@ -9,18 +9,18 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
   const defaultBundles = [
     {
       id: 'nck-mock-1',
-      title: 'NCK Mock 1 - October 2025',
+      title: 'NCK Mock 1 - October 2025 (RN FQE)',
       category: 'NCK Registered Nurse (RN) FQE',
       domain: 'Medical-Surgical Nursing',
       price: 'Free Access',
       numericPrice: 0,
-      questionCount: 120,
-      durationMinutes: 150,
+      questionCount: 10,
+      durationMinutes: 30,
       difficulty: 'Advanced',
       isPremium: false,
-      features: ['October 2025 Mock Edition', 'Detailed Clinical Rationales', 'Immediate NCK Performance Analytics'],
+      features: ['10 High-Yield RN FQE Questions', 'Detailed Clinical Rationales', 'Immediate Performance Analytics'],
       requiredPlan: 'free',
-      questionLimits: { free: 20, basic: 120, gold: 0, platinum: 0 },
+      questionLimits: { free: 10, basic: 10, gold: 0, platinum: 0 },
       isPublished: true,
       questions: [
         {
@@ -36,81 +36,326 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
           options: ['Yellow-green visual halos and nausea', 'Hypertension and tachycardia', 'Fine motor tremors and muscle rigidity', 'Polyuria and excessive thirst'],
           correctAnswer: 'Yellow-green visual halos and nausea',
           explanation: 'Visual disturbances such as blurred vision, yellow-green halos, and gastrointestinal upset (nausea/vomiting) are classic signs of digitalis toxicity.'
-        }
-      ]
-    },
-    {
-      id: 'nck-paper-2-batch-8',
-      title: 'NCK Paper 2 Batch 8 Questions & Answers',
-      category: 'NCK Registered Nurse (RN) FQE',
-      domain: 'Pharmacology & Parenteral Therapies',
-      price: 'Free Access',
-      numericPrice: 0,
-      questionCount: 50,
-      durationMinutes: 60,
-      difficulty: 'Medium',
-      isPremium: false,
-      features: ['Batch 8 Board Review', 'Answers & Rationales', 'High-Yield Clinical Cases'],
-      requiredPlan: 'free',
-      questionLimits: { free: 10, basic: 50, gold: 0, platinum: 0 },
-      isPublished: true,
-      questions: [
+        },
         {
-          id: 'batch8-q1',
-          question: "During the administration of packed red blood cells (PRBCs), a client develops chills, fever, and lower back pain within 15 minutes. What is the nurse's immediate action?",
-          options: ['Slow the transfusion rate by half', 'Stop the transfusion immediately and disconnect tubing', 'Administer prescribed acetaminophen and diphenhydramine', 'Notify the attending physician after completing transfusion'],
-          correctAnswer: 'Stop the transfusion immediately and disconnect tubing',
-          explanation: 'Fever, chills, and lower back pain indicate an acute hemolytic transfusion reaction. The transfusion must be stopped immediately, and normal saline infused through a new line.'
-        }
-      ]
-    },
-    {
-      id: 'nck-fqe-mastery',
-      title: 'NCK Registered Nurse (RN) FQE Mastery Prep',
-      category: 'NCK Registered Nurse (RN) FQE',
-      domain: 'Medical-Surgical Nursing',
-      price: 'Free Access',
-      numericPrice: 0,
-      questionCount: 100,
-      durationMinutes: 120,
-      difficulty: 'Medium',
-      isPremium: false,
-      features: ['NCK Blueprint Aligned', 'Comprehensive Rationales', 'Performance Breakdown'],
-      requiredPlan: 'free',
-      questionLimits: { free: 15, basic: 100, gold: 0, platinum: 0 },
-      isPublished: true,
-      questions: [
-        {
-          id: 'mastery-q1',
-          question: 'A nurse is caring for a client with hyperkalemia. Which ECG change is most characteristic and requires immediate reporting?',
-          options: ['Prolonged QT interval', 'Tall, peaked T waves', 'Flattened P waves', 'Prominent U waves'],
+          id: 'mock1-q3',
+          question: 'A client with chronic kidney disease (CKD) has a serum potassium level of 6.2 mEq/L. Which ECG change should the nurse anticipate?',
+          options: ['Tall, peaked T waves', 'Prolonged QT interval', 'Prominent U waves', 'Flattened P waves'],
           correctAnswer: 'Tall, peaked T waves',
-          explanation: 'Tall, peaked T waves are typically the earliest electrocardiographic sign of hyperkalemia, representing altered repolarization.'
+          explanation: 'Hyperkalemia (potassium > 5.0 mEq/L) characteristically causes tall, peaked T waves on ECG, which can progress to widened QRS and ventricular arrhythmias if untreated.'
+        },
+        {
+          id: 'mock1-q4',
+          question: 'Which nursing intervention is top priority when caring for a client experiencing a sudden wound dehiscence with evisceration following abdominal surgery?',
+          options: ['Cover the protruding viscera with sterile saline-soaked dressings', 'Attempt to gently push the organs back into the peritoneal cavity', 'Place the client in high-Fowler position without support', 'Administer prescribed oral analgesics immediately'],
+          correctAnswer: 'Cover the protruding viscera with sterile saline-soaked dressings',
+          explanation: 'Evisceration is a surgical emergency. The nurse must immediately cover the exposed viscera with sterile, saline-moistened dressings to prevent drying and infection, place client in low Fowler with knees flexed, and notify surgeon.'
+        },
+        {
+          id: 'mock1-q5',
+          question: 'A client is receiving a blood transfusion (PRBCs) and within 15 minutes develops chills, lower back pain, and tachycardia. What is the nurse\'s immediate action?',
+          options: ['Stop the transfusion immediately and infuse normal saline through new tubing', 'Slow the transfusion rate by half and monitor vitals', 'Administer antihistamines and continue transfusion', 'Notify the blood bank after finishing the unit'],
+          correctAnswer: 'Stop the transfusion immediately and infuse normal saline through new tubing',
+          explanation: 'Chills, lower back pain, and fever during blood administration indicate an acute hemolytic transfusion reaction. The transfusion must be stopped immediately to prevent severe kidney injury.'
+        },
+        {
+          id: 'mock1-q6',
+          question: 'Which finding in a client with a chest tube connected to a water-seal drainage system indicates a normal or expected condition?',
+          options: ['Continuous bubbling in the water-seal chamber', 'Fluctuation (tidaling) of water level in the water-seal chamber with respiration', 'Total absence of fluid movement in the suction control chamber', 'Continuous bubbling in the suction control chamber'],
+          correctAnswer: 'Fluctuation (tidaling) of water level in the water-seal chamber with respiration',
+          explanation: 'Tidaling (rising and falling of water level with inspiration/expiration) in the water-seal chamber is normal and indicates intact pleural pressure transmission. Continuous bubbling in the water-seal chamber indicates an air leak.'
+        },
+        {
+          id: 'mock1-q7',
+          question: 'A client with type 1 diabetes mellitus presents with fruity breath odor, Kussmaul respirations, and blood glucose of 480 mg/dL. Which intravenous fluid is initiated first?',
+          options: ['0.9% Sodium Chloride (Normal Saline)', '5% Dextrose in Water', '0.45% Sodium Chloride without electrolytes', '5% Dextrose in 0.9% Normal Saline'],
+          correctAnswer: '0.9% Sodium Chloride (Normal Saline)',
+          explanation: 'Initial treatment for diabetic ketoacidosis (DKA) prioritizes rapid expansion of intravascular volume and restoration of renal perfusion using isotonic 0.9% NaCl before insulin administration.'
+        },
+        {
+          id: 'mock1-q8',
+          question: 'Which symptom is characteristic of left-sided heart failure compared to right-sided heart failure?',
+          options: ['Pink frothy sputum and dyspnea on exertion', 'Dependent pitting peripheral edema', 'Jugular venous distension (JVD)', 'Hepatosplenomegaly and ascites'],
+          correctAnswer: 'Pink frothy sputum and dyspnea on exertion',
+          explanation: 'Left-sided heart failure causes pulmonary congestion resulting in dyspnea, orthopnea, crackles, and pink frothy sputum. Right-sided failure leads to systemic venous congestion (edema, JVD, ascites).'
+        },
+        {
+          id: 'mock1-q9',
+          question: 'A client is diagnosed with acute appendicitis. Where should the nurse expect the client to report maximum localized tenderness?',
+          options: ['McBurney\'s point in the right lower quadrant', 'Left upper quadrant near the spleen', 'Epigastric region radiating to the scapula', 'Suprapubic region during bladder distension'],
+          correctAnswer: 'McBurney\'s point in the right lower quadrant',
+          explanation: 'Appendicitis typically causes localized tenderness at McBurney\'s point, located one-third of the distance from the right anterior superior iliac spine to the umbilicus.'
+        },
+        {
+          id: 'mock1-q10',
+          question: 'Which dietary instruction is most crucial for a client prescribed spironolactone, a potassium-sparing diuretic?',
+          options: ['Avoid high-potassium foods such as bananas and salt substitutes', 'Increase intake of green leafy vegetables high in potassium', 'Restrict all fluid intake to less than 1,000 mL daily', 'Increase daily sodium consumption to prevent hyponatremia'],
+          correctAnswer: 'Avoid high-potassium foods such as bananas and salt substitutes',
+          explanation: 'Spironolactone spares potassium and can cause dangerous hyperkalemia. Clients must avoid potassium-rich foods and salt substitutes containing potassium chloride.'
         }
       ]
     },
     {
       id: 'nck-community-health',
-      title: 'NCK Community Health & Midwifery Nursing',
+      title: 'NCK Community Health Nursing Practice Bank',
       category: 'NCK Community Health Nurse',
       domain: 'Community & Public Health',
       price: 'Free Access',
       numericPrice: 0,
-      questionCount: 80,
-      durationMinutes: 90,
+      questionCount: 10,
+      durationMinutes: 30,
       difficulty: 'Medium',
       isPremium: false,
-      features: ['Obstetric Nursing', 'Maternal & Newborn Protocols', 'Public Health Care'],
+      features: ['10 Public Health Questions', 'MOH Immunization Protocols', 'Epidemiology & Disease Control'],
       requiredPlan: 'free',
-      questionLimits: { free: 15, basic: 80, gold: 0, platinum: 0 },
+      questionLimits: { free: 10, basic: 10, gold: 0, platinum: 0 },
       isPublished: true,
       questions: [
         {
           id: 'comm-q1',
           question: 'Which vaccine is routinely administered at birth in Kenya according to the Ministry of Health (MOH) immunization schedule?',
-          options: ['BCG and Oral Polio Vaccine (OPV 0)', 'Measles-Rubella first dose', 'DPT-HepB-Hib pentavalent dose 1', 'HPV vaccine'],
+          options: ['BCG and Oral Polio Vaccine (OPV 0)', 'Measles-Rubella first dose', 'DPT-HepB-Hib pentavalent dose 1', 'HPV vaccine for adolescent girls'],
           correctAnswer: 'BCG and Oral Polio Vaccine (OPV 0)',
           explanation: 'According to the Kenya MOH immunization schedule, BCG (for tuberculosis protection) and OPV birth dose are administered at birth or within the first two weeks.'
+        },
+        {
+          id: 'comm-q2',
+          question: 'What is the recommended age for administering the first dose of Measles-Rubella (MR) vaccine in Kenya?',
+          options: ['9 months', 'At birth', '6 weeks', '18 months'],
+          correctAnswer: '9 months',
+          explanation: 'In Kenya\'s immunization schedule, the first dose of Measles-Rubella vaccine is administered at 9 months of age, followed by the second dose at 18 months.'
+        },
+        {
+          id: 'comm-q3',
+          question: 'What is the safe temperature range for storing vaccines in the refrigerator cold chain unit?',
+          options: ['+2°C to +8°C', '-15°C to -25°C', '+10°C to +15°C', '+20°C to +25°C'],
+          correctAnswer: '+2°C to +8°C',
+          explanation: 'Vaccine refrigerators must be maintained between +2°C and +8°C. Temperatures outside this range can damage vaccine potency.'
+        },
+        {
+          id: 'comm-q4',
+          question: 'Which strategy is recommended by the WHO for trachoma control globally and in endemic areas of Kenya?',
+          options: ['SAFE strategy (Surgery, Antibiotics, Facial cleanliness, Environmental improvement)', 'Mass chemotherapy with praziquantel', 'Vector fogging with organophosphates', 'Chlorination of municipal water supplies'],
+          correctAnswer: 'SAFE strategy (Surgery, Antibiotics, Facial cleanliness, Environmental improvement)',
+          explanation: 'The SAFE strategy is the comprehensive global approach endorsed by WHO to eliminate blinding trachoma.'
+        },
+        {
+          id: 'comm-q5',
+          question: 'According to WHO and Kenya MOH guidelines, how many antenatal care (ANC) contacts are recommended for a pregnant woman with an uncomplicated pregnancy?',
+          options: ['At least 8 contacts', 'Exactly 4 contacts', 'Only 2 contacts during third trimester', 'Monthly visits starting at week 36'],
+          correctAnswer: 'At least 8 contacts',
+          explanation: 'WHO updated ANC recommendations to at least 8 contacts to reduce perinatal mortality and improve maternal experience of care.'
+        },
+        {
+          id: 'comm-q6',
+          question: 'What is the recommended duration of exclusive breastfeeding for infants according to national and international health guidelines?',
+          options: ['First 6 months of life', 'First 3 months of life', 'First 12 months of life', 'First 4 weeks of life'],
+          correctAnswer: 'First 6 months of life',
+          explanation: 'Exclusive breastfeeding for the first 6 months provides ideal nutrition and immunological protection against infections.'
+        },
+        {
+          id: 'comm-q7',
+          question: 'Which vector-control intervention is most effective and widely distributed to prevent malaria in endemic regions of Kenya?',
+          options: ['Long-Lasting Insecticidal Nets (LLINs)', 'Indoor residual spraying with DDT in urban centers', 'Aerial larviciding of all running rivers', 'Personal repellent creams applied weekly'],
+          correctAnswer: 'Long-Lasting Insecticidal Nets (LLINs)',
+          explanation: 'LLIN distribution campaigns are the cornerstone of malaria prevention in endemic counties in Kenya.'
+        },
+        {
+          id: 'comm-q8',
+          question: 'What is the primary objective of Directly Observed Treatment, Short-course (DOTS) in tuberculosis control programs?',
+          options: ['Ensuring treatment adherence and achieving high cure rates', 'Isolating all TB patients in specialized hospitals indefinitely', 'Providing free nutritional supplements only', 'Eliminating the need for sputum microscopy testing'],
+          correctAnswer: 'Ensuring treatment adherence and achieving high cure rates',
+          explanation: 'DOTS ensures patients take every dose of anti-TB medication under observation, preventing drug resistance and ensuring cure.'
+        },
+        {
+          id: 'comm-q9',
+          question: 'Which method is the most reliable household water treatment practice in rural community settings without piped treated water?',
+          options: ['Boiling rolling water for at least one minute or certified chlorination', 'Storing water in copper containers for 2 hours', 'Filtering water through porous cotton cloth', 'Exposing water to sunlight in dark plastic bottles'],
+          correctAnswer: 'Boiling rolling water for at least one minute or certified chlorination',
+          explanation: 'Boiling or adding water treatment chemicals like sodium hypochlorite effectively eliminates pathogenic bacteria, viruses, and parasites.'
+        },
+        {
+          id: 'comm-q10',
+          question: 'What is the first step in conducting a community health diagnosis in a newly assigned sub-location?',
+          options: ['Community needs assessment and baseline data collection', 'Constructing a permanent health dispensary', 'Imposing mandatory vaccination fines', 'Ordering pharmaceutical supplies without consultation'],
+          correctAnswer: 'Community needs assessment and baseline data collection',
+          explanation: 'A community diagnosis begins with systematic collection and analysis of community health data to identify priority health needs.'
+        }
+      ]
+    },
+    {
+      id: 'nck-midwifery-obstetrics',
+      title: 'NCK Midwifery & Obstetric Nursing Question Bank',
+      category: 'NCK Midwifery & Obstetric Nursing',
+      domain: 'Obstetric Nursing',
+      price: 'Free Access',
+      numericPrice: 0,
+      questionCount: 10,
+      durationMinutes: 30,
+      difficulty: 'Medium',
+      isPremium: false,
+      features: ['10 Midwifery Questions', 'Labor & Delivery Protocols', 'Maternal & Newborn Care'],
+      requiredPlan: 'free',
+      questionLimits: { free: 10, basic: 10, gold: 0, platinum: 0 },
+      isPublished: true,
+      questions: [
+        {
+          id: 'mid-q1',
+          question: 'What is the clinical definition of postpartum hemorrhage (PPH) following a vaginal delivery?',
+          options: ['Blood loss exceeding 500 mL within 24 hours post-delivery', 'Blood loss exceeding 200 mL within 2 hours', 'Any bleeding that requires intravenous fluid replacement', 'Blood loss exceeding 1,000 mL regardless of delivery mode'],
+          correctAnswer: 'Blood loss exceeding 500 mL within 24 hours post-delivery',
+          explanation: 'Postpartum hemorrhage is defined as blood loss greater than 500 mL following vaginal delivery (or >1,000 mL following cesarean delivery) within the first 24 hours.'
+        },
+        {
+          id: 'mid-q2',
+          question: 'What is the priority medication administered to a pregnant client experiencing severe pre-eclampsia to prevent eclamptic seizures?',
+          options: ['Magnesium sulfate IV/IM loading and maintenance infusion', 'Phenytoin sodium oral tablets', 'Diazepam rapid intravenous push', 'Hydralazine hydrochloride sublingual'],
+          correctAnswer: 'Magnesium sulfate IV/IM loading and maintenance infusion',
+          explanation: 'Magnesium sulfate is the anticonvulsant of choice for prevention and treatment of seizures in severe pre-eclampsia and eclampsia.'
+        },
+        {
+          id: 'mid-q3',
+          question: 'What is the normal baseline fetal heart rate range during intrapartum electronic fetal monitoring?',
+          options: ['110 to 160 beats per minute', '80 to 100 beats per minute', '160 to 190 beats per minute', '60 to 90 beats per minute'],
+          correctAnswer: '110 to 160 beats per minute',
+          explanation: 'Normal baseline fetal heart rate ranges from 110 to 160 bpm.'
+        },
+        {
+          id: 'mid-q4',
+          question: 'What do early decelerations on an electronic fetal monitoring strip typically indicate?',
+          options: ['Fetal head compression (benign finding)', 'Umbilical cord compression', 'Uteroplacental insufficiency', 'Fetal hypoxia and acidosis'],
+          correctAnswer: 'Fetal head compression (benign finding)',
+          explanation: 'Early decelerations mirror contractions and are caused by fetal head compression during labor, requiring no intervention.'
+        },
+        {
+          id: 'mid-q5',
+          question: 'At what standard intervals are Apgar scores assessed in a newborn infant after birth?',
+          options: ['At 1 minute and 5 minutes after birth', 'At 5 minutes and 10 minutes only', 'Every 15 minutes for the first hour', 'At birth and 24 hours of life'],
+          correctAnswer: 'At 1 minute and 5 minutes after birth',
+          explanation: 'Apgar scoring is performed at 1 minute and 5 minutes of life to evaluate newborn transition and response to resuscitation.'
+        },
+        {
+          id: 'mid-q6',
+          question: 'Which clinical manifestation is classic for placenta previa in the third trimester?',
+          options: ['Painless bright red vaginal bleeding', 'Sudden severe abdominal pain with rigid uterus', 'Continuous dark red bleeding with uterine tenderness', 'Painless foul-smelling amniotic fluid discharge'],
+          correctAnswer: 'Painless bright red vaginal bleeding',
+          explanation: 'Placenta previa presents classically as painless bright red vaginal bleeding during the second or third trimester due to lower uterine segment implantation.'
+        },
+        {
+          id: 'mid-q7',
+          question: 'What is the first-line nursing action when postpartum hemorrhage is detected due to uterine atony?',
+          options: ['Perform immediate bimanual uterine massage and administer oxytocin', 'Prepare the client for emergency hysterectomy', 'Insert a Foley catheter and administer diuretics', 'Apply abdominal binder tightly'],
+          correctAnswer: 'Perform immediate bimanual uterine massage and administer oxytocin',
+          explanation: 'Uterine massage stimulates myometrial contraction to close open blood vessels at the placental site, paired with uterotonic agents.'
+        },
+        {
+          id: 'mid-q8',
+          question: 'When is routine screening for gestational diabetes mellitus (GDM) typically performed during pregnancy?',
+          options: ['Between 24 and 28 weeks of gestation', 'At the first antenatal booking visit', 'During the 36th week of gestation', 'Only if the client develops glycosuria'],
+          correctAnswer: 'Between 24 and 28 weeks of gestation',
+          explanation: 'Screening for gestational diabetes using an oral glucose tolerance test is routinely recommended between 24 and 28 weeks gestation.'
+        },
+        {
+          id: 'mid-q9',
+          question: 'What defines the beginning and end of the second stage of labor?',
+          options: ['Full cervical dilation (10 cm) to the birth of the baby', 'Onset of regular uterine contractions to 4 cm dilation', 'Delivery of the placenta to 2 hours postpartum', 'Rupture of membranes to complete cervical effacement'],
+          correctAnswer: 'Full cervical dilation (10 cm) to the birth of the baby',
+          explanation: 'The second stage of labor spans from 10 cm cervical dilation until the complete expulsion of the neonate.'
+        },
+        {
+          id: 'mid-q10',
+          question: 'What is the appropriate management for a postpartum client experiencing painful breast engorgement on day 3 post-delivery?',
+          options: ['Frequent nursing or pumping, warm compresses before feeding, cold compresses after', 'Complete cessation of breastfeeding and firm breast binding', 'Applying restriction of fluids and administering strong analgesics only', 'Massaging the breasts vigorously with alcohol rub'],
+          correctAnswer: 'Frequent nursing or pumping, warm compresses before feeding, cold compresses after',
+          explanation: 'Frequent milk removal and temperature therapy relieve vascular congestion and engorgement safely.'
+        }
+      ]
+    },
+    {
+      id: 'nck-psychiatric-mental',
+      title: 'NCK Psychiatric & Mental Health Nursing Question Bank',
+      category: 'NCK Psychiatric & Mental Health Nursing',
+      domain: 'Mental Health & Psychiatric Nursing',
+      price: 'Free Access',
+      numericPrice: 0,
+      questionCount: 10,
+      durationMinutes: 30,
+      difficulty: 'Medium',
+      isPremium: false,
+      features: ['10 Psychiatric Questions', 'Therapeutic Communication', 'Psychopharmacology & Safety'],
+      requiredPlan: 'free',
+      questionLimits: { free: 10, basic: 10, gold: 0, platinum: 0 },
+      isPublished: true,
+      questions: [
+        {
+          id: 'psych-q1',
+          question: 'Which symptom is an early sign of lithium toxicity in a client receiving treatment for bipolar disorder?',
+          options: ['Coarse hand tremors, nausea, vomiting, and ataxia', 'Hypertension and severe tachycardia', 'Constipation and excessive weight gain', 'Jaundice and elevated liver enzymes'],
+          correctAnswer: 'Coarse hand tremors, nausea, vomiting, and ataxia',
+          explanation: 'Lithium has a narrow therapeutic index (0.6 - 1.2 mEq/L). Early toxicity signs include coarse tremors, GI upset, and ataxia.'
+        },
+        {
+          id: 'psych-q2',
+          question: 'Which symptom represents a positive symptom of schizophrenia?',
+          options: ['Auditory and visual hallucinations', 'Alogia (poverty of speech)', 'Avolition (lack of drive)', 'Affective flattening'],
+          correctAnswer: 'Auditory and visual hallucinations',
+          explanation: 'Positive symptoms reflect an excess or distortion of normal functions, such as hallucinations, delusions, and disorganized speech.'
+        },
+        {
+          id: 'psych-q3',
+          question: 'What is the minimum duration of depressed mood required to diagnose Major Depressive Disorder (MDD)?',
+          options: ['At least 2 continuous weeks', 'At least 3 consecutive days', 'At least 6 months', 'At least 1 year'],
+          correctAnswer: 'At least 2 continuous weeks',
+          explanation: 'Diagnosis of MDD requires depressed mood or loss of interest/pleasure present nearly every day for at least 2 weeks.'
+        },
+        {
+          id: 'psych-q4',
+          question: 'What is the most appropriate environmental nursing intervention for a client admitted in an acute manic phase of bipolar disorder?',
+          options: ['Providing a low-stimulus environment with simple, structured activities', 'Encouraging participation in large group competitive sports', 'Placing the client in a crowded dayroom to socialize', 'Assigning complex multi-step puzzles to stimulate cognition'],
+          correctAnswer: 'Providing a low-stimulus environment with simple, structured activities',
+          explanation: 'Clients in acute mania are easily agitated and distracted; a low-stimulus environment helps reduce overstimulation.'
+        },
+        {
+          id: 'psych-q5',
+          question: 'What is the nurse\'s highest priority action when a psychiatric client expresses suicidal ideation?',
+          options: ['Directly asking the client about their suicide plan and intent', 'Promising absolute confidentiality regarding the conversation', 'Changing the subject to a neutral recreational topic', 'Leaving the client alone to ponder positive thoughts'],
+          correctAnswer: 'Directly asking the client about their suicide plan and intent',
+          explanation: 'Direct inquiry about suicide is safe, essential, and does not plant ideas. It evaluates immediate lethality and safety risk.'
+        },
+        {
+          id: 'psych-q6',
+          question: 'Which medication class is standard for managing acute alcohol withdrawal and preventing delirium tremens (DTs)?',
+          options: ['Benzodiazepines (e.g., diazepam or chlordiazepoxide)', 'Typical antipsychotics (e.g., haloperidol)', 'Tricyclic antidepressants (e.g., amitriptyline)', 'Opioid agonists (e.g., morphine sulfate)'],
+          correctAnswer: 'Benzodiazepines (e.g., diazepam or chlordiazepoxide)',
+          explanation: 'Benzodiazepines provide cross-tolerance to alcohol, preventing seizures and delirium tremens during acute withdrawal.'
+        },
+        {
+          id: 'psych-q7',
+          question: 'How should a nurse initially manage a client with obsessive-compulsive disorder (OCD) who engages in time-consuming handwashing rituals?',
+          options: ['Allow time for the ritual initially while setting gentle limits to reduce anxiety', 'Immediately forbid all handwashing to break the habit', 'Punish the client when rituals are performed', 'Ignore the behavior completely'],
+          correctAnswer: 'Allow time for the ritual initially while setting gentle limits to reduce anxiety',
+          explanation: 'Abruptly stopping compulsions increases severe anxiety. Nurses allow ritual time initially and structure gradual limits.'
+        },
+        {
+          id: 'psych-q8',
+          question: 'Which symptom category is characteristic of Post-Traumatic Stress Disorder (PTSD)?',
+          options: ['Intrusive re-experiencing, avoidance, negative mood changes, and hyperarousal', 'Manic grandiosity and decreased need for sleep', 'Auditory command hallucinations and loose associations', 'Memory loss limited exclusively to childhood events'],
+          correctAnswer: 'Intrusive re-experiencing, avoidance, negative mood changes, and hyperarousal',
+          explanation: 'PTSD clusters comprise intrusion, avoidance, negative alterations in cognition/mood, and marked alterations in arousal/reactivity.'
+        },
+        {
+          id: 'psych-q9',
+          question: 'What is the primary medical emergency risk for a client with severe anorexia nervosa presenting with cachexia?',
+          options: ['Cardiac arrhythmias secondary to severe electrolyte imbalance', 'Hypertensive crisis and stroke', 'Pathological fractures from hypercalcemia', 'Hyperglycemic hyperosmolar state'],
+          correctAnswer: 'Cardiac arrhythmias secondary to severe electrolyte imbalance',
+          explanation: 'Severe malnutrition and electrolyte shifts (potassium, magnesium) in anorexia nervosa pose life-threatening cardiac arrhythmia risks.'
+        },
+        {
+          id: 'psych-q10',
+          question: 'During which phase of the therapeutic nurse-client relationship are goals established and explored?',
+          options: ['Working phase', 'Orientation phase', 'Termination phase', 'Pre-interaction phase'],
+          correctAnswer: 'Working phase',
+          explanation: 'The working phase is where problem-solving, skill development, and achievement of established therapeutic goals take place.'
         }
       ]
     },
@@ -121,21 +366,84 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
       domain: 'Nursing Fundamentals',
       price: 'Free Access',
       numericPrice: 0,
-      questionCount: 60,
-      durationMinutes: 60,
+      questionCount: 10,
+      durationMinutes: 30,
       difficulty: 'Beginner',
       isPremium: false,
-      features: ['Nursing Act Cap 257', 'Code of Conduct', 'Legal Liability'],
+      features: ['10 Ethics & Law Questions', 'Nursing Act Cap 257', 'Professional Conduct'],
       requiredPlan: 'free',
-      questionLimits: { free: 10, basic: 60, gold: 0, platinum: 0 },
+      questionLimits: { free: 10, basic: 10, gold: 0, platinum: 0 },
       isPublished: true,
       questions: [
         {
           id: 'ethics-q1',
           question: 'According to the Nursing Council of Kenya (NCK) Code of Professional Conduct, what is the primary legal and ethical obligation of a registered nurse?',
-          options: ['Advocating for patient safety and high quality nursing care', 'Maximizing hospital revenue collection', 'Enforcing administrative penalties on junior staff', 'Prioritizing private clinic appointments'],
+          options: ['Advocating for patient safety and high quality nursing care', 'Maximizing institutional revenue collection', 'Enforcing administrative penalties on junior colleagues', 'Prioritizing private clinic appointments'],
           correctAnswer: 'Advocating for patient safety and high quality nursing care',
           explanation: 'The primary ethical and legal duty of every nurse licensed by the NCK is safeguarding patient welfare, safety, and professional standards of care.'
+        },
+        {
+          id: 'ethics-q2',
+          question: 'Who bears the ultimate legal responsibility for explaining a surgical procedure and obtaining informed consent from a client?',
+          options: ['The attending physician or surgeon performing the procedure', 'The attending staff nurse receiving the client', 'The hospital administrator on duty', 'The operating theater scrub nurse'],
+          correctAnswer: 'The attending physician or surgeon performing the procedure',
+          explanation: 'The practitioner performing the procedure must explain risks, benefits, and alternatives. The nurse\'s role is to witness the signature and verify client comprehension.'
+        },
+        {
+          id: 'ethics-q3',
+          question: 'What are the four essential legal elements required to establish professional negligence (malpractice) in a healthcare lawsuit?',
+          options: ['Duty, breach of duty, causation, and damages', 'Intent, assault, battery, and false imprisonment', 'Negligence, slander, libel, and breach of contract', 'Poverty, lack of education, distance, and delay'],
+          correctAnswer: 'Duty, breach of duty, causation, and damages',
+          explanation: 'To prove malpractice, the plaintiff must establish that a legal duty existed, that the nurse breached that duty, that causation links the breach to injury, and that actual damages occurred.'
+        },
+        {
+          id: 'ethics-q4',
+          question: 'Under Kenya health law and professional ethics, when is a nurse legally justified in breaching patient confidentiality?',
+          options: ['When mandatory reporting laws apply (e.g., notifiable infectious diseases or child abuse)', 'Whenever a family member asks for patient details over the phone', 'When discussing interesting cases with friends in public areas', 'When posting clinical updates on personal social media accounts'],
+          correctAnswer: 'When mandatory reporting laws apply (e.g., notifiable infectious diseases or child abuse)',
+          explanation: 'Confidentiality is paramount but legally overridden by statutory requirements such as public health reporting of notifiable diseases or child protection laws.'
+        },
+        {
+          id: 'ethics-q5',
+          question: 'Which statutory act of Parliament establishes and governs the Nursing Council of Kenya (NCK)?',
+          options: ['The Nurses Act Cap 257 of the Laws of Kenya', 'The Penal Code Cap 63', 'The Public Health Act Cap 242', 'The Employment Act No. 11'],
+          correctAnswer: 'The Nurses Act Cap 257 of the Laws of Kenya',
+          explanation: 'The Nurses Act Cap 257 is the principal legislation regulating nursing education, registration, licensing, and professional discipline in Kenya.'
+        },
+        {
+          id: 'ethics-q6',
+          question: 'What disciplinary action can the Nursing Council of Kenya disciplinary committee take against a nurse found guilty of gross professional misconduct?',
+          options: ['Suspension of license or erasure of name from the professional register', 'Mandatory community service without formal notification', 'Issuing a verbal reprimand without investigation', 'Transferring the nurse to another county without documentation'],
+          correctAnswer: 'Suspension of license or erasure of name from the professional register',
+          explanation: 'The NCK disciplinary committee protects the public by suspending licenses or removing practitioners found guilty of professional misconduct.'
+        },
+        {
+          id: 'ethics-q7',
+          question: 'Which intentional tort occurs if a nurse administers an injection or performs a procedure on a competent adult client who explicitly refuses consent?',
+          options: ['Battery', 'Slander', 'Defamation', 'Negligence'],
+          correctAnswer: 'Battery',
+          explanation: 'Battery is the unprivileged, intentional touching of a person without their consent. Performing procedures against expressed refusal constitutes battery.'
+        },
+        {
+          id: 'ethics-q8',
+          question: 'Which bioethical principle refers to the right of competent clients to make autonomous decisions regarding their own healthcare?',
+          options: ['Autonomy', 'Beneficence', 'Non-maleficence', 'Justice'],
+          correctAnswer: 'Autonomy',
+          explanation: 'Autonomy is the moral and legal principle acknowledging a competent individual\'s right to self-determination and independent decision-making.'
+        },
+        {
+          id: 'ethics-q9',
+          question: 'What bioethical principle obligates the nurse to take positive actions to help others and promote client well-being?',
+          options: ['Beneficence', 'Autonomy', 'Veracity', 'Fidelity'],
+          correctAnswer: 'Beneficence',
+          explanation: 'Beneficence requires acting in the best interest of the patient and actively promoting their health and welfare.'
+        },
+        {
+          id: 'ethics-q10',
+          question: 'What ethical principle requires healthcare professionals to be truthful and honest in all communications with clients?',
+          options: ['Veracity', 'Justice', 'Confidentiality', 'Accountability'],
+          correctAnswer: 'Veracity',
+          explanation: 'Veracity is the duty to tell the truth and avoid deception, fostering trust in the nurse-client relationship.'
         }
       ]
     }
@@ -223,6 +531,6 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
 
   return { 
     syncedExamsCount: Math.max(syncedExamsCount, defaultBundles.length, 5), 
-    syncedQuestionsCount: Math.max(syncedQuestionsCount, uniqueQuestionsMap.size, 20) 
+    syncedQuestionsCount: Math.max(syncedQuestionsCount, uniqueQuestionsMap.size, 50) 
   };
 }
