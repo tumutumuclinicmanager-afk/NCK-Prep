@@ -184,52 +184,118 @@ export default function QuestionRepository({ refreshTrigger }: { refreshTrigger?
       
       let syncedExamsCount = 0;
       let syncedQuestionsCount = 0;
+      const uniqueQuestionsMap = new Map<string, any>();
 
-      // 1. Sync local custom exams
-      for (const ex of localExams) {
-        try {
-          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
-            ...ex,
-            isPublished: true,
+      if (Array.isArray(questions)) {
+        for (const q of questions) {
+          const qId = q.id ? String(q.id) : `q-repo-${Math.random().toString(36).substring(2, 9)}`;
+          uniqueQuestionsMap.set(qId, {
+            id: qId,
+            question: q.questionStem || q.question || '',
+            options: q.options || [],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.rationale || q.explanation || '',
+            examMode: q.examMode || 'NCK Registered Nurse (RN) FQE',
+            unitDomain: q.unitDomain || q.domain || 'Medical-Surgical Nursing',
             updatedAt: new Date().toISOString()
-          }, { merge: true });
-          syncedExamsCount++;
-        } catch (e) {
-          console.warn('Error syncing custom exam:', e);
+          });
         }
       }
 
-      // 2. Sync ALL_QUIZ_QUESTIONS to Firestore questions collection
-      if (typeof ALL_QUIZ_QUESTIONS !== 'undefined' && Array.isArray(ALL_QUIZ_QUESTIONS)) {
-        for (const q of ALL_QUIZ_QUESTIONS) {
+      if (Array.isArray(exams)) {
+        for (const ex of exams) {
           try {
-            const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
-            await setDoc(doc(db, 'questions', qId), {
-              ...q,
+            const cleanEx = {
+              id: ex.id || `exam-${Date.now()}`,
+              title: ex.title || 'Exam',
+              category: ex.category || 'NCK Registered Nurse (RN) FQE',
+              domain: ex.domain || 'Medical-Surgical Nursing',
+              price: ex.price || 'Free Access',
+              numericPrice: ex.numericPrice || 0,
+              questionCount: Array.isArray(ex.questions) ? ex.questions.length : 0,
+              durationMinutes: ex.durationMinutes || 60,
+              difficulty: ex.difficulty || 'Medium',
+              isPremium: Boolean(ex.isPremium),
+              features: ex.features || [],
+              requiredPlan: ex.requiredPlan || 'free',
+              questionLimits: ex.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
+              questions: Array.isArray(ex.questions) ? ex.questions : [],
+              isPublished: true,
               updatedAt: new Date().toISOString()
-            }, { merge: true });
-            syncedQuestionsCount++;
+            };
+            await setDoc(doc(db, 'exams', cleanEx.id), cleanEx, { merge: true });
+            syncedExamsCount++;
+
+            if (Array.isArray(ex.questions)) {
+              for (const q of ex.questions) {
+                const qId = q.id ? String(q.id) : `q-ex-${Math.random().toString(36).substring(2, 9)}`;
+                uniqueQuestionsMap.set(qId, {
+                  id: qId,
+                  question: q.question || q.questionStem || '',
+                  options: q.options || [],
+                  correctAnswer: q.correctAnswer || '',
+                  explanation: q.explanation || q.rationale || '',
+                  examMode: ex.category || 'NCK Registered Nurse (RN) FQE',
+                  unitDomain: ex.domain || 'Medical-Surgical Nursing',
+                  updatedAt: new Date().toISOString()
+                });
+              }
+            }
           } catch (e) {
-            console.warn('Error syncing quiz question:', e);
+            console.warn('Error syncing exam:', e);
           }
         }
       }
 
-      // 3. Sync local custom questions
-      for (const q of localQuestions) {
+      for (const ex of localExams) {
         try {
-          const qId = q.id ? String(q.id) : `q-custom-${Math.random().toString(36).substring(2, 9)}`;
-          await setDoc(doc(db, 'questions', qId), {
-            ...q,
+          const cleanEx = {
+            id: ex.id || `exam-${Date.now()}`,
+            title: ex.title || 'Custom Exam',
+            category: ex.category || 'NCK Registered Nurse (RN) FQE',
+            domain: ex.domain || 'Medical-Surgical Nursing',
+            price: ex.price || 'Free Access',
+            numericPrice: ex.numericPrice || 0,
+            questionCount: Array.isArray(ex.questions) ? ex.questions.length : 0,
+            durationMinutes: ex.durationMinutes || 60,
+            difficulty: ex.difficulty || 'Medium',
+            isPremium: Boolean(ex.isPremium),
+            features: ex.features || [],
+            requiredPlan: ex.requiredPlan || 'free',
+            questionLimits: ex.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
+            questions: Array.isArray(ex.questions) ? ex.questions : [],
+            isPublished: true,
             updatedAt: new Date().toISOString()
-          }, { merge: true });
+          };
+          await setDoc(doc(db, 'exams', cleanEx.id), cleanEx, { merge: true });
+          if (!exams.some(e => e.id === cleanEx.id)) syncedExamsCount++;
+        } catch (e) {}
+      }
+
+      for (const q of localQuestions) {
+        const qId = q.id ? String(q.id) : `q-local-${Math.random().toString(36).substring(2, 9)}`;
+        uniqueQuestionsMap.set(qId, {
+          id: qId,
+          question: q.question || q.questionStem || '',
+          options: q.options || [],
+          correctAnswer: q.correctAnswer || '',
+          explanation: q.explanation || q.rationale || '',
+          examMode: q.examMode || 'NCK Registered Nurse (RN) FQE',
+          unitDomain: q.unitDomain || q.domain || 'Medical-Surgical Nursing',
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      for (const [qId, qData] of uniqueQuestionsMap.entries()) {
+        try {
+          await setDoc(doc(db, 'questions', qId), qData, { merge: true });
           syncedQuestionsCount++;
         } catch (e) {
-          console.warn('Error syncing custom question:', e);
+          console.warn('Error writing question:', e);
         }
       }
 
-      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`;
+      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. All devices can now access them.`;
       setSyncToastMessage(msg);
       alert(msg);
       fetchData();
