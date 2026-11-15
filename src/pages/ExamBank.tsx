@@ -551,11 +551,26 @@ export default function ExamBank() {
       if (typeof defaultExamBundles !== 'undefined' && Array.isArray(defaultExamBundles)) {
         for (const ex of defaultExamBundles) {
           try {
-            await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
-              ...ex,
+            const cleanExam = {
+              id: ex.id,
+              title: ex.title,
+              category: ex.category,
+              domain: ex.domain,
+              price: ex.price,
+              numericPrice: ex.numericPrice || 0,
+              questionCount: Array.isArray(ex.questions) ? ex.questions.length : (ex.questionCount || 0),
+              durationMinutes: ex.durationMinutes || 60,
+              difficulty: ex.difficulty || 'Medium',
+              isPremium: Boolean(ex.isPremium),
+              features: ex.features || [],
+              requiredPlan: ex.requiredPlan || 'free',
+              questionLimits: ex.questionLimits || { free: 20, basic: 120, gold: 0, platinum: 0 },
+              questions: Array.isArray(ex.questions) ? ex.questions : [],
               isPublished: true,
               updatedAt: new Date().toISOString()
-            }, { merge: true });
+            };
+
+            await setDoc(doc(db, 'exams', ex.id), cleanExam, { merge: true });
             syncedExamsCount++;
 
             if (Array.isArray(ex.questions)) {
@@ -582,11 +597,26 @@ export default function ExamBank() {
       // 2. Gather from local custom exams
       for (const ex of localExams) {
         try {
-          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
-            ...ex,
+          const cleanCustomExam = {
+            id: ex.id || `exam-${Date.now()}`,
+            title: ex.title || 'Custom Exam',
+            category: ex.category || 'NCK Registered Nurse (RN) FQE',
+            domain: ex.domain || 'Medical-Surgical Nursing',
+            price: ex.price || 'Free Access',
+            numericPrice: ex.numericPrice || 0,
+            questionCount: Array.isArray(ex.questions) ? ex.questions.length : 0,
+            durationMinutes: ex.durationMinutes || 60,
+            difficulty: ex.difficulty || 'Medium',
+            isPremium: Boolean(ex.isPremium),
+            features: ex.features || [],
+            requiredPlan: ex.requiredPlan || 'free',
+            questionLimits: ex.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
+            questions: Array.isArray(ex.questions) ? ex.questions : [],
             isPublished: true,
             updatedAt: new Date().toISOString()
-          }, { merge: true });
+          };
+
+          await setDoc(doc(db, 'exams', cleanCustomExam.id), cleanCustomExam, { merge: true });
           syncedExamsCount++;
 
           if (Array.isArray(ex.questions)) {
