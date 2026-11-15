@@ -873,29 +873,26 @@ export default function ExamBank() {
       const dbExams: ExamItem[] = [];
       const examDocsQuestions: any[] = [];
 
-      // 1. Fetch Firestore exams collection with resilient error handling and auto-seeding
+      // 1. Fetch Firestore exams collection with resilient error handling and auto-syncing of default bundles
       try {
-        const examsSnap = await getDocs(query(collection(db, 'exams')));
-        if (examsSnap.empty) {
-          // Auto-seed default exam bundles to Firestore for cross-device visibility
-          for (const bundle of defaultExamBundles) {
-            try {
-              await setDoc(doc(db, 'exams', bundle.id), {
-                title: bundle.title,
-                category: bundle.category,
-                domain: bundle.domain,
-                price: bundle.price,
-                questionCount: bundle.questionCount,
-                durationMinutes: bundle.durationMinutes,
-                difficulty: bundle.difficulty,
-                requiredPlan: bundle.requiredPlan || 'free',
-                questions: bundle.questions || [],
-                isPublished: true,
-                createdAt: new Date().toISOString()
-              });
-            } catch (seedErr) {
-              console.warn('Auto-seed note:', seedErr);
-            }
+        // Always ensure default exam bundles exist in Firestore for cross-device consistency
+        for (const bundle of defaultExamBundles) {
+          try {
+            await setDoc(doc(db, 'exams', bundle.id), {
+              title: bundle.title,
+              category: bundle.category,
+              domain: bundle.domain,
+              price: bundle.price,
+              questionCount: bundle.questionCount,
+              durationMinutes: bundle.durationMinutes,
+              difficulty: bundle.difficulty,
+              requiredPlan: bundle.requiredPlan || 'free',
+              questions: bundle.questions || [],
+              isPublished: true,
+              updatedAt: new Date().toISOString()
+            }, { merge: true });
+          } catch (seedErr) {
+            console.warn('Exam sync note:', seedErr);
           }
         }
 
