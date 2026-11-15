@@ -545,8 +545,9 @@ export default function ExamBank() {
       
       let syncedExamsCount = 0;
       let syncedQuestionsCount = 0;
+      const uniqueQuestionsMap = new Map<string, any>();
 
-      // 1. Sync default exam bundles if defined
+      // 1. Gather from defaultExamBundles
       if (typeof defaultExamBundles !== 'undefined' && Array.isArray(defaultExamBundles)) {
         for (const ex of defaultExamBundles) {
           try {
@@ -556,13 +557,29 @@ export default function ExamBank() {
               updatedAt: new Date().toISOString()
             }, { merge: true });
             syncedExamsCount++;
+
+            if (Array.isArray(ex.questions)) {
+              for (const q of ex.questions) {
+                const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
+                uniqueQuestionsMap.set(qId, {
+                  id: qId,
+                  question: q.question || q.questionStem || '',
+                  options: q.options || [],
+                  correctAnswer: q.correctAnswer || '',
+                  explanation: q.explanation || q.rationale || '',
+                  examMode: ex.category || 'NCK Registered Nurse (RN) FQE',
+                  unitDomain: ex.domain || 'Medical-Surgical Nursing',
+                  updatedAt: new Date().toISOString()
+                });
+              }
+            }
           } catch (e) {
-            console.warn('Error syncing default exam:', e);
+            console.warn('Error syncing default exam bundle:', e);
           }
         }
       }
 
-      // 2. Sync local custom exams
+      // 2. Gather from local custom exams
       for (const ex of localExams) {
         try {
           await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
@@ -571,42 +588,57 @@ export default function ExamBank() {
             updatedAt: new Date().toISOString()
           }, { merge: true });
           syncedExamsCount++;
+
+          if (Array.isArray(ex.questions)) {
+            for (const q of ex.questions) {
+              const qId = q.id ? String(q.id) : `q-custom-ex-${Math.random().toString(36).substring(2, 9)}`;
+              uniqueQuestionsMap.set(qId, {
+                id: qId,
+                question: q.question || q.questionStem || '',
+                options: q.options || [],
+                correctAnswer: q.correctAnswer || '',
+                explanation: q.explanation || q.rationale || '',
+                examMode: ex.category || 'NCK Registered Nurse (RN) FQE',
+                unitDomain: ex.domain || 'Medical-Surgical Nursing',
+                updatedAt: new Date().toISOString()
+              });
+            }
+          }
         } catch (e) {
           console.warn('Error syncing custom exam:', e);
         }
       }
 
-      // 3. Sync ALL_QUIZ_QUESTIONS to Firestore questions collection
-      if (typeof ALL_QUIZ_QUESTIONS !== 'undefined' && Array.isArray(ALL_QUIZ_QUESTIONS)) {
-        for (const q of ALL_QUIZ_QUESTIONS) {
-          try {
-            const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
-            await setDoc(doc(db, 'questions', qId), {
-              ...q,
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-            syncedQuestionsCount++;
-          } catch (e) {
-            console.warn('Error syncing quiz question:', e);
-          }
-        }
-      }
-
-      // 4. Sync local custom questions
+      // 3. Gather from local custom questions
       for (const q of localQuestions) {
         try {
           const qId = q.id ? String(q.id) : `q-custom-${Math.random().toString(36).substring(2, 9)}`;
-          await setDoc(doc(db, 'questions', qId), {
-            ...q,
+          uniqueQuestionsMap.set(qId, {
+            id: qId,
+            question: q.question || q.questionStem || '',
+            options: q.options || [],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.explanation || q.rationale || '',
+            examMode: q.examMode || 'NCK Registered Nurse (RN) FQE',
+            unitDomain: q.unitDomain || q.domain || 'Medical-Surgical Nursing',
             updatedAt: new Date().toISOString()
-          }, { merge: true });
-          syncedQuestionsCount++;
+          });
         } catch (e) {
-          console.warn('Error syncing custom question:', e);
+          console.warn('Error processing local question:', e);
         }
       }
 
-      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`;
+      // 4. Batch write all unique questions to Firestore questions collection
+      for (const [qId, qData] of uniqueQuestionsMap.entries()) {
+        try {
+          await setDoc(doc(db, 'questions', qId), qData, { merge: true });
+          syncedQuestionsCount++;
+        } catch (e) {
+          console.warn('Error writing question to Firestore:', e);
+        }
+      }
+
+      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. All devices can now access them.`;
       setSyncToastMessage(msg);
       alert(msg);
       fetchAllExamsAndQuestions();

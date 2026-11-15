@@ -17,6 +17,12 @@ export function FloatingWhatsApp() {
   const [isSubmittingSchedule, setIsSubmittingSchedule] = useState(false);
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
 
+  const [isSyncingBanner, setIsSyncingBanner] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncTimeRemaining, setSyncTimeRemaining] = useState('2.0s');
+  const [syncFailed, setSyncFailed] = useState(false);
+  const [lastQueryData, setLastQueryData] = useState<any>(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setShouldAnimate(true);
@@ -32,28 +38,73 @@ export function FloatingWhatsApp() {
 
   const handleWhatsAppClick = async (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsSyncingBanner(true);
+    setSyncFailed(false);
+    setSyncProgress(15);
+    setSyncTimeRemaining('1.8s');
+
     const queryId = `NP-WAP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const userEmail = auth.currentUser?.email || localStorage.getItem('userEmail') || 'Guest Student';
     const userRole = localStorage.getItem('userRole') || 'student';
     const currentPath = window.location.pathname;
 
-    try {
-      await addDoc(collection(db, 'whatsappInquiries'), {
-        queryId,
-        userEmail,
-        userRole,
-        currentPath,
-        timestamp: new Date().toISOString(),
-        status: 'active'
-      });
-    } catch (err) {
-      localStorage.setItem('nckprep_last_whatsapp_inquiry', JSON.stringify({ queryId, timestamp: new Date().toISOString() }));
-    }
+    const queryData = {
+      queryId,
+      userEmail,
+      userRole,
+      currentPath,
+      timestamp: new Date().toISOString(),
+      status: 'active'
+    };
+    setLastQueryData(queryData);
 
-    const customMessage = `Hello NCKPrep, I need assistance regarding my nursing licensure prep. [Ref ID: ${queryId}]`;
-    const dynamicUrl = `https://wa.me/${rawNumber}?text=${encodeURIComponent(customMessage)}`;
-    
-    window.open(dynamicUrl, '_blank', 'noopener,noreferrer');
+    setTimeout(() => {
+      setSyncProgress(60);
+      setSyncTimeRemaining('0.8s');
+    }, 400);
+
+    try {
+      await addDoc(collection(db, 'whatsappInquiries'), queryData);
+      setSyncProgress(100);
+      setSyncTimeRemaining('0.0s');
+
+      setTimeout(() => {
+        setIsSyncingBanner(false);
+        setSyncProgress(0);
+        const customMessage = `Hello NCKPrep, I need assistance regarding my nursing licensure prep. [Ref ID: ${queryId}]`;
+        const dynamicUrl = `https://wa.me/${rawNumber}?text=${encodeURIComponent(customMessage)}`;
+        window.open(dynamicUrl, '_blank', 'noopener,noreferrer');
+      }, 700);
+    } catch (err) {
+      console.warn("WhatsApp inquiry sync failed:", err);
+      setIsSyncingBanner(false);
+      setSyncFailed(true);
+    }
+  };
+
+  const handleRetrySync = async () => {
+    if (!lastQueryData) return;
+    setIsSyncingBanner(true);
+    setSyncFailed(false);
+    setSyncProgress(30);
+    setSyncTimeRemaining('1.0s');
+
+    try {
+      await addDoc(collection(db, 'whatsappInquiries'), lastQueryData);
+      setSyncProgress(100);
+      setSyncTimeRemaining('0.0s');
+
+      setTimeout(() => {
+        setIsSyncingBanner(false);
+        setSyncProgress(0);
+        const customMessage = `Hello NCKPrep, retrying inquiry. [Ref ID: ${lastQueryData.queryId}]`;
+        const dynamicUrl = `https://wa.me/${rawNumber}?text=${encodeURIComponent(customMessage)}`;
+        window.open(dynamicUrl, '_blank', 'noopener,noreferrer');
+      }, 500);
+    } catch (err) {
+      setIsSyncingBanner(false);
+      setSyncFailed(true);
+    }
   };
 
   const handleScheduleSubmit = async (e: React.FormEvent) => {
@@ -142,7 +193,34 @@ export function FloatingWhatsApp() {
           shouldAnimate ? 'animate-bounce' : ''
         }`}
       >
-        <div className="relative group bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-xl shadow-slate-900/15 border border-emerald-500/40 p-2 sm:p-2.5 flex items-center gap-2.5 sm:gap-3 hover:border-emerald-400 transition-all">
+        <div className="relative group bg-slate-900/95 backdrop-blur-md text-white rounded-xl shadow-xl shadow-slate-900/15 border border-emerald-500/40 p-2 sm:p-2.5 flex flex-col gap-1.5 hover:border-emerald-400 transition-all">
+          {isSyncingBanner && (
+            <div className="w-full space-y-1 bg-slate-800/90 p-1.5 rounded-lg border border-emerald-500/40 animate-in fade-in">
+              <div className="flex items-center justify-between text-[10px] text-emerald-300 font-extrabold">
+                <span>Syncing inquiry & connecting...</span>
+                <span>{syncTimeRemaining}</span>
+              </div>
+              <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-emerald-400 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${syncProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {syncFailed && (
+            <div className="w-full bg-rose-950/90 p-2 rounded-lg border border-rose-500/50 flex items-center justify-between text-[11px] animate-in fade-in">
+              <span className="text-rose-200 font-bold">Cloud sync failed.</span>
+              <button
+                type="button"
+                onClick={handleRetrySync}
+                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-extrabold text-[10px] shadow transition-all cursor-pointer"
+              >
+                Retry Sync
+              </button>
+            </div>
+          )}
           {/* Recent Response Time Tooltip on Hover */}
           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-emerald-300 text-[11px] font-extrabold rounded-lg shadow-xl border border-emerald-500/40 whitespace-nowrap z-50 animate-in fade-in">
             <span>⚡ Typical response time: Under 5 minutes</span>
