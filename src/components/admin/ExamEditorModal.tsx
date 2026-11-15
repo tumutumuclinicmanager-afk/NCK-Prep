@@ -10,6 +10,7 @@ import { doc, setDoc, getDocs, collection, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { normalizeQuestion } from '@/lib/utils';
 import { ALL_QUIZ_QUESTIONS } from '@/data/quizQuestions';
+import { syncAllExamsAndQuestionsToCloud } from '@/lib/cloudSync';
 
 export interface EditableQuestion {
   id: string;
@@ -495,57 +496,8 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
 
   const handleSyncLocalExamsToCloud = async () => {
     try {
-      const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
-      const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
-      
-      let syncedExamsCount = 0;
-      let syncedQuestionsCount = 0;
-
-      // 1. Sync local custom exams
-      for (const ex of localExams) {
-        try {
-          await setDoc(doc(db, 'exams', ex.id || `exam-${Date.now()}`), {
-            ...ex,
-            isPublished: true,
-            updatedAt: new Date().toISOString()
-          }, { merge: true });
-          syncedExamsCount++;
-        } catch (e) {
-          console.warn('Error syncing custom exam:', e);
-        }
-      }
-
-      // 2. Sync ALL_QUIZ_QUESTIONS to Firestore questions collection
-      if (typeof ALL_QUIZ_QUESTIONS !== 'undefined' && Array.isArray(ALL_QUIZ_QUESTIONS)) {
-        for (const q of ALL_QUIZ_QUESTIONS) {
-          try {
-            const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
-            await setDoc(doc(db, 'questions', qId), {
-              ...q,
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-            syncedQuestionsCount++;
-          } catch (e) {
-            console.warn('Error syncing quiz question:', e);
-          }
-        }
-      }
-
-      // 3. Sync local custom questions
-      for (const q of localQuestions) {
-        try {
-          const qId = q.id ? String(q.id) : `q-custom-${Math.random().toString(36).substring(2, 9)}`;
-          await setDoc(doc(db, 'questions', qId), {
-            ...q,
-            updatedAt: new Date().toISOString()
-          }, { merge: true });
-          syncedQuestionsCount++;
-        } catch (e) {
-          console.warn('Error syncing custom question:', e);
-        }
-      }
-
-      alert(`Cloud Sync Successful! Synced ${syncedExamsCount} custom exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. Other devices can now see all items.`);
+      const { syncedExamsCount, syncedQuestionsCount } = await syncAllExamsAndQuestionsToCloud();
+      alert(`Cloud Sync Successful! Synced ${syncedExamsCount} NCK exam bundle(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. All devices can now access them.`);
     } catch (err: any) {
       alert(`Cloud sync failed: ${err?.message || 'Unknown error'}`);
     }

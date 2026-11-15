@@ -18,6 +18,7 @@ import { useTrialCountdown, setSimulatedTrialExpired } from '@/lib/trialManager'
 import { TrialExpiredExamLock } from '@/components/TrialExpiredExamLock';
 import { setExamFocusMode } from '@/lib/examFocusMode';
 import { ExamEditorModal } from '@/components/admin/ExamEditorModal';
+import { syncAllExamsAndQuestionsToCloud } from '@/lib/cloudSync';
 
 const clinicalDomains = [
   'All Specialties',
@@ -540,135 +541,8 @@ export default function ExamBank() {
     setIsSyncing(true);
     setSyncToastMessage(null);
     try {
-      const localExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');
-      const localQuestions = JSON.parse(localStorage.getItem('nckprep_custom_questions') || '[]');
-      
-      let syncedExamsCount = 0;
-      let syncedQuestionsCount = 0;
-      const uniqueQuestionsMap = new Map<string, any>();
-
-      // 1. Gather from defaultExamBundles
-      if (typeof defaultExamBundles !== 'undefined' && Array.isArray(defaultExamBundles)) {
-        for (const ex of defaultExamBundles) {
-          try {
-            const cleanExam = {
-              id: ex.id,
-              title: ex.title,
-              category: ex.category,
-              domain: ex.domain,
-              price: ex.price,
-              numericPrice: ex.numericPrice || 0,
-              questionCount: Array.isArray(ex.questions) ? ex.questions.length : (ex.questionCount || 0),
-              durationMinutes: ex.durationMinutes || 60,
-              difficulty: ex.difficulty || 'Medium',
-              isPremium: Boolean(ex.isPremium),
-              features: ex.features || [],
-              requiredPlan: ex.requiredPlan || 'free',
-              questionLimits: ex.questionLimits || { free: 20, basic: 120, gold: 0, platinum: 0 },
-              questions: Array.isArray(ex.questions) ? ex.questions : [],
-              isPublished: true,
-              updatedAt: new Date().toISOString()
-            };
-
-            await setDoc(doc(db, 'exams', ex.id), cleanExam, { merge: true });
-            syncedExamsCount++;
-
-            if (Array.isArray(ex.questions)) {
-              for (const q of ex.questions) {
-                const qId = q.id ? String(q.id) : `q-${Math.random().toString(36).substring(2, 9)}`;
-                uniqueQuestionsMap.set(qId, {
-                  id: qId,
-                  question: q.question || q.questionStem || '',
-                  options: q.options || [],
-                  correctAnswer: q.correctAnswer || '',
-                  explanation: q.explanation || q.rationale || '',
-                  examMode: ex.category || 'NCK Registered Nurse (RN) FQE',
-                  unitDomain: ex.domain || 'Medical-Surgical Nursing',
-                  updatedAt: new Date().toISOString()
-                });
-              }
-            }
-          } catch (e) {
-            console.warn('Error syncing default exam bundle:', e);
-          }
-        }
-      }
-
-      // 2. Gather from local custom exams
-      for (const ex of localExams) {
-        try {
-          const cleanCustomExam = {
-            id: ex.id || `exam-${Date.now()}`,
-            title: ex.title || 'Custom Exam',
-            category: ex.category || 'NCK Registered Nurse (RN) FQE',
-            domain: ex.domain || 'Medical-Surgical Nursing',
-            price: ex.price || 'Free Access',
-            numericPrice: ex.numericPrice || 0,
-            questionCount: Array.isArray(ex.questions) ? ex.questions.length : 0,
-            durationMinutes: ex.durationMinutes || 60,
-            difficulty: ex.difficulty || 'Medium',
-            isPremium: Boolean(ex.isPremium),
-            features: ex.features || [],
-            requiredPlan: ex.requiredPlan || 'free',
-            questionLimits: ex.questionLimits || { free: 5, basic: 25, gold: 0, platinum: 0 },
-            questions: Array.isArray(ex.questions) ? ex.questions : [],
-            isPublished: true,
-            updatedAt: new Date().toISOString()
-          };
-
-          await setDoc(doc(db, 'exams', cleanCustomExam.id), cleanCustomExam, { merge: true });
-          syncedExamsCount++;
-
-          if (Array.isArray(ex.questions)) {
-            for (const q of ex.questions) {
-              const qId = q.id ? String(q.id) : `q-custom-ex-${Math.random().toString(36).substring(2, 9)}`;
-              uniqueQuestionsMap.set(qId, {
-                id: qId,
-                question: q.question || q.questionStem || '',
-                options: q.options || [],
-                correctAnswer: q.correctAnswer || '',
-                explanation: q.explanation || q.rationale || '',
-                examMode: ex.category || 'NCK Registered Nurse (RN) FQE',
-                unitDomain: ex.domain || 'Medical-Surgical Nursing',
-                updatedAt: new Date().toISOString()
-              });
-            }
-          }
-        } catch (e) {
-          console.warn('Error syncing custom exam:', e);
-        }
-      }
-
-      // 3. Gather from local custom questions
-      for (const q of localQuestions) {
-        try {
-          const qId = q.id ? String(q.id) : `q-custom-${Math.random().toString(36).substring(2, 9)}`;
-          uniqueQuestionsMap.set(qId, {
-            id: qId,
-            question: q.question || q.questionStem || '',
-            options: q.options || [],
-            correctAnswer: q.correctAnswer || '',
-            explanation: q.explanation || q.rationale || '',
-            examMode: q.examMode || 'NCK Registered Nurse (RN) FQE',
-            unitDomain: q.unitDomain || q.domain || 'Medical-Surgical Nursing',
-            updatedAt: new Date().toISOString()
-          });
-        } catch (e) {
-          console.warn('Error processing local question:', e);
-        }
-      }
-
-      // 4. Batch write all unique questions to Firestore questions collection
-      for (const [qId, qData] of uniqueQuestionsMap.entries()) {
-        try {
-          await setDoc(doc(db, 'questions', qId), qData, { merge: true });
-          syncedQuestionsCount++;
-        } catch (e) {
-          console.warn('Error writing question to Firestore:', e);
-        }
-      }
-
-      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} exam(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. All devices can now access them.`;
+      const { syncedExamsCount, syncedQuestionsCount } = await syncAllExamsAndQuestionsToCloud();
+      const msg = `Cloud Sync Successful! Synced ${syncedExamsCount} NCK exam bundle(s) and ${syncedQuestionsCount} question(s) to Cloud Firestore. All devices can now access them.`;
       setSyncToastMessage(msg);
       alert(msg);
       fetchAllExamsAndQuestions();
