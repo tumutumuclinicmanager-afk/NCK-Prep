@@ -546,6 +546,147 @@ const defaultExamBundles: ExamItem[] = [
         explanation: 'Veracity is the duty to tell the truth and avoid deception, fostering trust in the nurse-client relationship.'
       }
     ]
+  },
+  {
+    id: 'abnormal-midwifery-revision',
+    title: 'ABNORMAL MIDWIFERY REVISION QUESTIONS (NCK FQE)',
+    category: 'NCK Midwifery & Obstetric Nursing',
+    domain: 'Obstetric Nursing',
+    price: 'Free Access',
+    numericPrice: 0,
+    questionCount: 20,
+    durationMinutes: 45,
+    difficulty: 'Advanced',
+    isPremium: false,
+    features: ['Uploaded PDF Revision Paper', 'Abnormal Midwifery & Obstetric Complications', 'Detailed Clinical Rationales'],
+    icon: ShieldCheck,
+    color: 'text-indigo-700',
+    bg: 'bg-indigo-100',
+    requiredPlan: 'free',
+    questionLimits: { free: 20, basic: 20, gold: 0, platinum: 0 },
+    isPublished: true,
+    questions: [
+      {
+        question: 'Persistent nausea and vomiting related to pregnancy is indicative of',
+        options: ['Morning sickness', 'Multiple gestation', 'Hyperemesis gravidarum', 'Hypertensive disorders'],
+        correctAnswer: 'Hyperemesis gravidarum',
+        explanation: 'Hyperemesis gravidarum is characterized by severe, persistent nausea and vomiting during pregnancy leading to weight loss and electrolyte imbalance.'
+      },
+      {
+        question: 'The complication that is associated with hyperemesis gravidarum is',
+        options: ['Wernicke\'s encephalopathy', 'Sheehan\'s syndrome', 'Maurice encephalitis', 'Antepartum bleeding'],
+        correctAnswer: 'Wernicke\'s encephalopathy',
+        explanation: 'Severe thiamine (Vitamin B1) deficiency resulting from prolonged hyperemesis gravidarum can precipitate Wernicke\'s encephalopathy.'
+      },
+      {
+        question: 'Arching back and tightly clenched teeth are among the features of which stage of eclampsia:',
+        options: ['Clonic', 'Tonic', 'Premonitory', 'Coma'],
+        correctAnswer: 'Tonic',
+        explanation: 'During the tonic phase of an eclamptic seizure, skeletal muscles contract violently, causing body arching and clenched teeth.'
+      },
+      {
+        question: 'The drug of choice in the management of eclampsia is',
+        options: ['Phenobarbitone', 'Magnesium sulphate', 'Calcium gluconate', 'Sodium bicarbonate'],
+        correctAnswer: 'Magnesium sulphate',
+        explanation: 'Magnesium sulfate is the definitive anticonvulsant of choice for arresting and preventing eclamptic seizures.'
+      },
+      {
+        question: 'The main clinical feature in Hyperemesis gravidarum is',
+        options: ['Persistent vomiting or nausea', 'Persistent sight related problems', 'Persistent diarrhea and vomiting', 'Frequency or urgency of micturition'],
+        correctAnswer: 'Persistent vomiting or nausea',
+        explanation: 'The hallmark presentation of hyperemesis gravidarum is intractable, persistent nausea and vomiting.'
+      },
+      {
+        question: 'Wernicke\'s encephalopathy and Mallory-Weiss syndrome are among the complications of',
+        options: ['Placenta praevia', 'Hypertensive disorders', 'Vitamin B deficiency', 'Hyperemesis gravidarum'],
+        correctAnswer: 'Hyperemesis gravidarum',
+        explanation: 'Hyperemesis gravidarum causes severe nutritional depletion resulting in Wernicke\'s encephalopathy and esophageal mucosal tears (Mallory-Weiss syndrome) from severe vomiting.'
+      },
+      {
+        question: 'Uterine apoplexy is associated with',
+        options: ['Postpartum haemorrhage', 'Hyperemesis gravidarum', 'Precipitate labour', 'Placental abruption'],
+        correctAnswer: 'Placental abruption',
+        explanation: 'Uterine apoplexy (Couvelaire uterus) occurs when blood infiltrates the myometrium in severe placental abruption.'
+      },
+      {
+        question: 'Complete placenta praemia is also referred to as',
+        options: ['Type 4', 'Type 1', 'Type 2', 'Type 3'],
+        correctAnswer: 'Type 4',
+        explanation: 'Placenta praemia is classified into four grades, where Type 4 represents total (complete) covering of the internal cervical os.'
+      },
+      {
+        question: 'The commonest major cause of primary postpartum haemorrhage is',
+        options: ['Trauma of the genital tract', 'Blood coagulation disorder', 'Prolonged stage of labor', 'Atony of the uterus'],
+        correctAnswer: 'Atony of the uterus',
+        explanation: 'Uterine atony (failure of the myometrium to contract post-delivery) accounts for approximately 70-80% of primary PPH cases.'
+      },
+      {
+        question: 'Excessive bleeding from the genital tract after the first 24 hours, but within puerperium period is referred to as',
+        options: ['Primary postpartum haemorrhage', 'Tertiary postpartum haemorrhage', 'Secondary postpartum haemorrhage', 'Incidental postpartum haemorrhage'],
+        correctAnswer: 'Secondary postpartum haemorrhage',
+        explanation: 'Secondary PPH occurs between 24 hours and 12 weeks post-delivery, often due to retained placental tissue or subinvolution/infection.'
+      },
+      {
+        question: 'The MOST common causative organism of acute pyelonephritis in pregnancy is',
+        options: ['Streptococcus faecalis', 'Escherichia coli', 'Proteus vulgaris', 'Staphylococcus aureus'],
+        correctAnswer: 'Escherichia coli',
+        explanation: 'Escherichia coli originating from the bowel flora is responsible for the vast majority of urinary tract infections and pyelonephritis during pregnancy.'
+      },
+      {
+        question: 'The priority management of uncomplicated malaria during the second trimester includes administration of',
+        options: ['Oral quinine', 'Parenteral quinine', 'Artemether lumefantrine', 'Sulphadoxine pyrimethamine'],
+        correctAnswer: 'Artemether lumefantrine',
+        explanation: 'ACTs such as artemether-lumefantrine are recommended by WHO and MOH Kenya as first-line treatment for uncomplicated malaria in second and third trimesters.'
+      },
+      {
+        question: 'The commonly used inhalational analgesia during labour is',
+        options: ['Entonox', 'Trilene', 'Oxygen', 'Nitrous oxide'],
+        correctAnswer: 'Entonox',
+        explanation: 'Entonox (50% nitrous oxide and 50% oxygen mix) is self-administered by laboring mothers for safe, intermittent pain relief.'
+      },
+      {
+        question: 'Post-partum haemorrhage is likely to lead to acute renal failure due to',
+        options: ['Sheehan\'s syndrome', 'Disseminated intravascular coagulation', 'Hypovolaemia leading to tubules necrosis', 'Asherman\'s syndrome'],
+        correctAnswer: 'Hypovolaemia leading to tubules necrosis',
+        explanation: 'Severe acute blood loss in PPH causes profound hypovolaemia and renal ischemia, leading to acute tubular necrosis (ATN).'
+      },
+      {
+        question: 'Postmaturity is pregnancy equal to or more than',
+        options: ['38 completed weeks', '42 completed weeks', '40 completed weeks', '36 completed weeks'],
+        correctAnswer: '42 completed weeks',
+        explanation: 'Postmaturity (post-term pregnancy) is clinically defined as pregnancy lasting 42 completed weeks (294 days) or more from the LMP.'
+      },
+      {
+        question: 'In marginal cephalopelvic disproportion',
+        options: ['All the patients will need an operative delivery', 'Half of the patients will need an operative delivery', 'The problem is always overcome during labour', 'The pelvis too is small for the fetus to pass through.'],
+        correctAnswer: 'The problem is always overcome during labour',
+        explanation: 'In marginal (mild) CPD, good uterine contractions and molding can frequently allow successful vaginal delivery.'
+      },
+      {
+        question: 'The presenting diameter in brow presentation is',
+        options: ['Submentobregmatic', 'Suboccipitofrontal', 'Mentovertical 13.5cm', 'Mentovertical 9.5cm'],
+        correctAnswer: 'Mentovertical 13.5cm',
+        explanation: 'In brow presentation, the fetal head presents by the mentovertical diameter (approximately 13.5 cm), which is the largest head diameter.'
+      },
+      {
+        question: 'The lie is defined as unstable when it keeps varying after',
+        options: ['36 weeks gestation', '42 weeks gestation', '38 weeks gestation', '40 weeks gestation'],
+        correctAnswer: '38 weeks gestation',
+        explanation: 'An unstable lie after 38 weeks gestation warrants close monitoring and hospital admission due to risks of cord prolapse and malpresentation.'
+      },
+      {
+        question: 'A condition of trial of scar is',
+        options: ['Estimated foetal weight of less than 3600g', 'Availability of a level one hospital nearby', 'Not more than two previous caesarean section scar', 'An adequate pelvis with true conjugate 10.5cm'],
+        correctAnswer: 'An adequate pelvis with true conjugate 10.5cm',
+        explanation: 'A successful trial of labor after cesarean (TOLAC) requires an adequate pelvis (true conjugate >= 10.5 cm), single previous low transverse scar, and vertex presentation.'
+      },
+      {
+        question: 'Vaginal birth after caesarean section is known as',
+        options: ['Spontaneous vaginal delivery', 'Trial of scar', 'Spontaneous vertex delivery', 'Elective operative delivery'],
+        correctAnswer: 'Trial of scar',
+        explanation: 'Vaginal birth after previous cesarean delivery is clinically termed a trial of scar (or TOLAC).'
+      }
+    ]
   }
 ];
 
