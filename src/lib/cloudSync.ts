@@ -449,160 +449,98 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
     },
     {
       id: 'abnormal-midwifery-revision',
-      title: 'ABNORMAL MIDWIFERY REVISION QUESTIONS (NCK FQE)',
+      title: 'ABNORMAL MIDWIFERY REVISION QUESTIONS (NCK FQE - 78 Qs)',
       category: 'NCK Midwifery & Obstetric Nursing',
       domain: 'Obstetric Nursing',
       price: 'Free Access',
       numericPrice: 0,
-      questionCount: 20,
-      durationMinutes: 45,
+      questionCount: 78,
+      durationMinutes: 90,
       difficulty: 'Advanced',
       isPremium: false,
-      features: ['Uploaded PDF Revision Paper', 'Abnormal Midwifery & Obstetric Complications', 'Detailed Clinical Rationales'],
+      features: ['Complete 78-Question PDF Revision Paper', 'Abnormal Midwifery & Obstetric Complications', 'Detailed Clinical Rationales'],
       requiredPlan: 'free',
-      questionLimits: { free: 20, basic: 20, gold: 0, platinum: 0 },
+      questionLimits: { free: 78, basic: 78, gold: 0, platinum: 0 },
       isPublished: true,
       questions: [
-        {
-          id: 'abnormal-mid-1',
-          question: 'Persistent nausea and vomiting related to pregnancy is indicative of',
-          options: ['Morning sickness', 'Multiple gestation', 'Hyperemesis gravidarum', 'Hypertensive disorders'],
-          correctAnswer: 'Hyperemesis gravidarum',
-          explanation: 'Hyperemesis gravidarum is characterized by severe, persistent nausea and vomiting during pregnancy leading to weight loss and electrolyte imbalance.'
-        },
-        {
-          id: 'abnormal-mid-2',
-          question: 'The complication that is associated with hyperemesis gravidarum is',
-          options: ['Wernicke\'s encephalopathy', 'Sheehan\'s syndrome', 'Maurice encephalitis', 'Antepartum bleeding'],
-          correctAnswer: 'Wernicke\'s encephalopathy',
-          explanation: 'Severe thiamine (Vitamin B1) deficiency resulting from prolonged hyperemesis gravidarum can precipitate Wernicke\'s encephalopathy.'
-        },
-        {
-          id: 'abnormal-mid-3',
-          question: 'Arching back and tightly clenched teeth are among the features of which stage of eclampsia:',
-          options: ['Clonic', 'Tonic', 'Premonitory', 'Coma'],
-          correctAnswer: 'Tonic',
-          explanation: 'During the tonic phase of an eclamptic seizure, skeletal muscles contract violently, causing body arching and clenched teeth.'
-        },
-        {
-          id: 'abnormal-mid-4',
-          question: 'The drug of choice in the management of eclampsia is',
-          options: ['Phenobarbitone', 'Magnesium sulphate', 'Calcium gluconate', 'Sodium bicarbonate'],
-          correctAnswer: 'Magnesium sulphate',
-          explanation: 'Magnesium sulfate is the definitive anticonvulsant of choice for arresting and preventing eclamptic seizures.'
-        },
-        {
-          id: 'abnormal-mid-5',
-          question: 'The main clinical feature in Hyperemesis gravidarum is',
-          options: ['Persistent vomiting or nausea', 'Persistent sight related problems', 'Persistent diarrhea and vomiting', 'Frequency or urgency of micturition'],
-          correctAnswer: 'Persistent vomiting or nausea',
-          explanation: 'The hallmark presentation of hyperemesis gravidarum is intractable, persistent nausea and vomiting.'
-        },
-        {
-          id: 'abnormal-mid-6',
-          question: 'Wernicke\'s encephalopathy and Mallory-Weiss syndrome are among the complications of',
-          options: ['Placenta praevia', 'Hypertensive disorders', 'Vitamin B deficiency', 'Hyperemesis gravidarum'],
-          correctAnswer: 'Hyperemesis gravidarum',
-          explanation: 'Hyperemesis gravidarum causes severe nutritional depletion resulting in Wernicke\'s encephalopathy and esophageal mucosal tears (Mallory-Weiss syndrome) from severe vomiting.'
-        },
-        {
-          id: 'abnormal-mid-7',
-          question: 'Uterine apoplexy is associated with',
-          options: ['Postpartum haemorrhage', 'Hyperemesis gravidarum', 'Precipitate labour', 'Placental abruption'],
-          correctAnswer: 'Placental abruption',
-          explanation: 'Uterine apoplexy (Couvelaire uterus) occurs when blood infiltrates the myometrium in severe placental abruption.'
-        },
-        {
-          id: 'abnormal-mid-8',
-          question: 'Complete placenta praemia is also referred to as',
-          options: ['Type 4', 'Type 1', 'Type 2', 'Type 3'],
-          correctAnswer: 'Type 4',
-          explanation: 'Placenta praemia is classified into four grades, where Type 4 represents total (complete) covering of the internal cervical os.'
-        },
-        {
-          id: 'abnormal-mid-9',
-          question: 'The commonest major cause of primary postpartum haemorrhage is',
-          options: ['Trauma of the genital tract', 'Blood coagulation disorder', 'Prolonged stage of labor', 'Atony of the uterus'],
-          correctAnswer: 'Atony of the uterus',
-          explanation: 'Uterine atony (failure of the myometrium to contract post-delivery) accounts for approximately 70-80% of primary PPH cases.'
-        },
-        {
-          id: 'abnormal-mid-10',
-          question: 'Excessive bleeding from the genital tract after the first 24 hours, but within puerperium period is referred to as',
-          options: ['Primary postpartum haemorrhage', 'Tertiary postpartum haemorrhage', 'Secondary postpartum haemorrhage', 'Incidental postpartum haemorrhage'],
-          correctAnswer: 'Secondary postpartum haemorrhage',
-          explanation: 'Secondary PPH occurs between 24 hours and 12 weeks post-delivery, often due to retained placental tissue or subinvolution/infection.'
-        },
-        {
-          id: 'abnormal-mid-11',
-          question: 'The MOST common causative organism of acute pyelonephritis in pregnancy is',
-          options: ['Streptococcus faecalis', 'Escherichia coli', 'Proteus vulgaris', 'Staphylococcus aureus'],
-          correctAnswer: 'Escherichia coli',
-          explanation: 'Escherichia coli originating from the bowel flora is responsible for the vast majority of urinary tract infections and pyelonephritis during pregnancy.'
-        },
-        {
-          id: 'abnormal-mid-12',
-          question: 'The priority management of uncomplicated malaria during the second trimester includes administration of',
-          options: ['Oral quinine', 'Parenteral quinine', 'Artemether lumefantrine', 'Sulphadoxine pyrimethamine'],
-          correctAnswer: 'Artemether lumefantrine',
-          explanation: 'ACTs such as artemether-lumefantrine are recommended by WHO and MOH Kenya as first-line treatment for uncomplicated malaria in second and third trimesters.'
-        },
-        {
-          id: 'abnormal-mid-13',
-          question: 'The commonly used inhalational analgesia during labour is',
-          options: ['Entonox', 'Trilene', 'Oxygen', 'Nitrous oxide'],
-          correctAnswer: 'Entonox',
-          explanation: 'Entonox (50% nitrous oxide and 50% oxygen mix) is self-administered by laboring mothers for safe, intermittent pain relief.'
-        },
-        {
-          id: 'abnormal-mid-14',
-          question: 'Post-partum haemorrhage is likely to lead to acute renal failure due to',
-          options: ['Sheehan\'s syndrome', 'Disseminated intravascular coagulation', 'Hypovolaemia leading to tubules necrosis', 'Asherman\'s syndrome'],
-          correctAnswer: 'Hypovolaemia leading to tubules necrosis',
-          explanation: 'Severe acute blood loss in PPH causes profound hypovolaemia and renal ischemia, leading to acute tubular necrosis (ATN).'
-        },
-        {
-          id: 'abnormal-mid-15',
-          question: 'Postmaturity is pregnancy equal to or more than',
-          options: ['38 completed weeks', '42 completed weeks', '40 completed weeks', '36 completed weeks'],
-          correctAnswer: '42 completed weeks',
-          explanation: 'Postmaturity (post-term pregnancy) is clinically defined as pregnancy lasting 42 completed weeks (294 days) or more from the LMP.'
-        },
-        {
-          id: 'abnormal-mid-16',
-          question: 'In marginal cephalopelvic disproportion',
-          options: ['All the patients will need an operative delivery', 'Half of the patients will need an operative delivery', 'The problem is always overcome during labour', 'The pelvis too is small for the fetus to pass through.'],
-          correctAnswer: 'The problem is always overcome during labour',
-          explanation: 'In marginal (mild) CPD, good uterine contractions and molding can frequently allow successful vaginal delivery.'
-        },
-        {
-          id: 'abnormal-mid-17',
-          question: 'The presenting diameter in brow presentation is',
-          options: ['Submentobregmatic', 'Suboccipitofrontal', 'Mentovertical 13.5cm', 'Mentovertical 9.5cm'],
-          correctAnswer: 'Mentovertical 13.5cm',
-          explanation: 'In brow presentation, the fetal head presents by the mentovertical diameter (approximately 13.5 cm), which is the largest head diameter.'
-        },
-        {
-          id: 'abnormal-mid-18',
-          question: 'The lie is defined as unstable when it keeps varying after',
-          options: ['36 weeks gestation', '42 weeks gestation', '38 weeks gestation', '40 weeks gestation'],
-          correctAnswer: '38 weeks gestation',
-          explanation: 'An unstable lie after 38 weeks gestation warrants close monitoring and hospital admission due to risks of cord prolapse and malpresentation.'
-        },
-        {
-          id: 'abnormal-mid-19',
-          question: 'A condition of trial of scar is',
-          options: ['Estimated foetal weight of less than 3600g', 'Availability of a level one hospital nearby', 'Not more than two previous caesarean section scar', 'An adequate pelvis with true conjugate 10.5cm'],
-          correctAnswer: 'An adequate pelvis with true conjugate 10.5cm',
-          explanation: 'A successful trial of labor after cesarean (TOLAC) requires an adequate pelvis (true conjugate >= 10.5 cm), single previous low transverse scar, and vertex presentation.'
-        },
-        {
-          id: 'abnormal-mid-20',
-          question: 'Vaginal birth after caesarean section is known as',
-          options: ['Spontaneous vaginal delivery', 'Trial of scar', 'Spontaneous vertex delivery', 'Elective operative delivery'],
-          correctAnswer: 'Trial of scar',
-          explanation: 'Vaginal birth after previous cesarean delivery is clinically termed a trial of scar (or TOLAC).'
-        }
+        { id: 'abm-1', question: 'Persistent nausea and vomiting related to pregnancy is indicative of', options: ['Morning sickness', 'Multiple gestation', 'Hyperemesis gravidarum', 'Hypertensive disorders'], correctAnswer: 'Hyperemesis gravidarum', explanation: 'Hyperemesis gravidarum is characterized by severe, persistent nausea and vomiting during pregnancy leading to weight loss and electrolyte imbalance.' },
+        { id: 'abm-2', question: 'The complication that is associated with hyperemesis gravidarum is', options: ["Wernicke's encephalopathy", "Sheehan's syndrome", 'Maurice encephalitis', 'Antepartum bleeding'], correctAnswer: "Wernicke's encephalopathy", explanation: 'Severe thiamine (Vitamin B1) deficiency resulting from prolonged hyperemesis gravidarum can precipitate Wernicke\'s encephalopathy.' },
+        { id: 'abm-3', question: 'Specific management of moderate pre-eclampsia involves', options: ['Admission at first contact', 'Managing as an outpatient case', 'Admission in the intensive care unit', 'Encouraging plenty of oral fluids'], correctAnswer: 'Admission at first contact', explanation: 'Moderate to severe pre-eclampsia requires prompt hospital admission for maternal and fetal surveillance.' },
+        { id: 'abm-4', question: 'Arched back and tightly clenched teeth, are among the features of which stage of eclampsia:', options: ['Clonic', 'Tonic', 'Premonitory', 'Coma'], correctAnswer: 'Tonic', explanation: 'During the tonic phase of an eclamptic seizure, skeletal muscles contract violently, causing body arching and clenched teeth.' },
+        { id: 'abm-5', question: 'Causes of polyhydramnios includes:', options: ['Congenital abnormalities and chorioangioma', 'Severe fetal hypoxia and multiple pregnancy', 'Uncontrolled diabetes mellitus and anaemia', 'Rhesus D isoimmunisation and post datism'], correctAnswer: 'Congenital abnormalities and chorioangioma', explanation: 'Polyhydramnios is commonly caused by fetal structural anomalies (e.g., central nervous system or gastrointestinal obstruction) and placental chorioangioma.' },
+        { id: 'abm-6', question: 'Some of the neonatal complications of eclampsia are:', options: ['Cerebral haemorrhage and pneumonia', 'Severe asphyxia and prematurity', 'Fractures and soft tissue trauma', 'Respiratory distress and hypoglycaemia'], correctAnswer: 'Severe asphyxia and prematurity', explanation: 'Eclamptic seizures cause acute uteroplacental insufficiency, resulting in fetal hypoxia, asphyxia, and often medically indicated preterm delivery.' },
+        { id: 'abm-7', question: 'Prenatal tuberculosis always leads to neonatal tuberculosis.', options: ['True', 'False'], correctAnswer: 'False', explanation: 'While congenital TB can occur via hematogenous spread through the umbilical vein, it does not always occur; prompt maternal treatment and infant prophylaxis prevent transmission.' },
+        { id: 'abm-8', question: 'Dichorionicity only occurs in dizygotic twinning.', options: ['True', 'False'], correctAnswer: 'False', explanation: 'Dichorionic diamniotic placentation can occur in both dizygotic twins and in monozygotic twins if division occurs within the first 3 days post-fertilization.' },
+        { id: 'abm-9', question: 'Productive cough, dyspnoea at rest and generalized oedema are among the features of:', options: ['Folate deficiency', 'Very severe anaemia', 'Mild iron deficiency', 'Severe anaemia'], correctAnswer: 'Very severe anaemia', explanation: 'Very severe anaemia in pregnancy leads to high-output cardiac failure, presenting with dyspnea at rest, productive cough, and generalized edema.' },
+        { id: 'abm-10', question: 'Incidental antepartum haemorrhage is also referred to as:', options: ['Intraplacental haemorrhage', 'Intrapartum haemorrhage', 'Extraplacental haemorrhage', 'Preterm haemorrhage'], correctAnswer: 'Accidental hemorrhage', explanation: 'Antepartum hemorrhage (placental abruption) is classically known as accidental hemorrhage.' },
+        { id: 'abm-11', question: 'Chemical diabetes mellitus is a classification based on:', options: ['Symptom are absent and abnormal specific laboratory results', 'Presence of symptoms and abnormal specific laboratory results', 'Previous congenital abnormalities and unexplained stillbirth', 'Previous birth of a baby weighing >4.3kg and spontaneous abortion'], correctAnswer: 'Symptom are absent and abnormal specific laboratory results', explanation: 'Chemical (gestational) diabetes mellitus is diagnosed when fasting blood sugar or GTT is abnormal despite the absence of classic clinical symptoms.' },
+        { id: 'abm-12', question: 'Diamorphic anaemia results due to deficiency of:', options: ['Iron and thiamine', 'Iron and folic acid', 'Folic acid and thiamine', 'Liver enzymes and iron'], correctAnswer: 'Iron and folic acid', explanation: 'Diamorphic anaemia (dimorphic anemia) involves concurrent iron deficiency and megaloblastic (folic acid) deficiency.' },
+        { id: 'abm-13', question: 'A MAJOR predisposing factor to cardiac disease in pregnancy includes:', options: ['Rheumatic heart disease', 'Notable peripheral oedema', 'Easy fatiguability', 'Basal crepitation'], correctAnswer: 'Rheumatic heart disease', explanation: 'Rheumatic heart disease remains the most prevalent predisposing cardiac condition among pregnant women in developing regions.' },
+        { id: 'abm-14', question: 'Which one of the following clinical features denotes cardiac disease grade III?', options: ['Patient is comfortable even at rest', 'Patient is asymptomatic initially', 'Marked limitation of physical activity', 'Absolute limitation of physical activity'], correctAnswer: 'Marked limitation of physical activity', explanation: 'NYHA Class III cardiac disease is characterized by marked limitation of physical activity where patients are comfortable only at rest.' },
+        { id: 'abm-15', question: 'The MOST common causative organism of acute pyelonephritis in pregnancy is:', options: ['Streptococcus faecalis', 'Escherichia coli', 'Proteus vulgaris', 'Staphylococcus aureus'], correctAnswer: 'Escherichia coli', explanation: 'Escherichia coli is responsible for over 80% of acute pyelonephritis cases during pregnancy due to urinary stasis and ureteral dilation.' },
+        { id: 'abm-16', question: 'The PRIORITY management of uncomplicated malaria during the second trimester includes administration of:', options: ['Oral quinine', 'Parenteral quinine', 'Artemether lumefantrine', 'Sulphadoxine pyrimethamine'], correctAnswer: 'Artemether lumefantrine', explanation: 'Artemether-lumefantrine (ACT) is recommended by WHO and MOH Kenya for uncomplicated malaria in the 2nd and 3rd trimesters.' },
+        { id: 'abm-17', question: 'The factor that is in indicative of an abnormal labour pattern on vaginal examination is:', options: ['The vagina is warm and moist', 'Cervical canal is long and thick', 'Cervical canal is short and thin', 'The vagina is hot and dry'], correctAnswer: 'The vagina is hot and dry', explanation: 'A hot, dry vagina upon pelvic examination indicates prolonged obstructed labor with maternal dehydration and soft tissue edema.' },
+        { id: 'abm-18', question: 'Which one of the following statements is correct about secondary post-partum haemorrhage?', options: ['Mostly occurs between the 3rd-84th day post-partumly', 'Results due to bleeding immediately after delivery', 'Can extend up to the first 46 days following delivery', 'Is diagnosed by presence of persistent lochia serosa'], correctAnswer: 'Can extend up to the first 46 days following delivery', explanation: 'Secondary PPH occurs after 24 hours up to 6-12 weeks (42-84 days) postpartum.' },
+        { id: 'abm-19', question: 'A non-pharmacological measure of pain relief in labour includes:', options: ['Entonox', 'Cyclothane', 'Homeopathy', 'Diamorphine'], correctAnswer: 'Homeopathy', explanation: 'Homeopathy, massage, hydrotherapy, and TENS represent non-pharmacological modalities for intrapartum pain management.' },
+        { id: 'abm-20', question: 'The most common cause of immediate postpartum haemorrhage is trauma to the genital tract.', options: ['True', 'False'], correctAnswer: 'True', explanation: 'While uterine atony is the most common overall cause of PPH, immediate bleeding right after birth can frequently stem from un-repaired perineal or cervical lacerations.' },
+        { id: 'abm-21', question: 'In monozygotic twinning, splitting after twelfth day of fertilization is highly associated with:', options: ['Fetal papyraceous', 'Premature birth', 'Siamese twin', 'Diamniotic twin'], correctAnswer: 'Siamese twin', explanation: 'Late embryonic splitting occurring after 12 days results in incomplete separation, leading to conjoined (siamese) twins.' },
+        { id: 'abm-22', question: 'The drug of choice in the management of eclampsia is:', options: ['Phenobarbitone', 'Magnesium sulphate', 'Calcium gluconate', 'Sodium bicarbonate'], correctAnswer: 'Magnesium sulphate', explanation: 'Magnesium sulfate is the superior anticonvulsant for eclampsia management.' },
+        { id: 'abm-23', question: 'The main clinical feature in Hyperemesis gravidarum is:', options: ['Persistent vomiting or nausea', 'Persistent sight related problems', 'Persistent diarrhea and vomiting', 'Frequency or urgency of micturition'], correctAnswer: 'Persistent vomiting or nausea', explanation: 'Intractable vomiting and nausea causing dehydration is the core presentation.' },
+        { id: 'abm-24', question: 'Wernicke\'s encephalopathy and Mallory-Weiss syndrome are among the complications of:', options: ['Placenta praevia', 'Hypertensive disorders', 'Vitamin B deficiency', 'Hyperemesis gravidarum'], correctAnswer: 'Hyperemesis gravidarum', explanation: 'Severe vomiting leads to B1 deficiency (Wernicke\'s) and esophageal mucosal tears (Mallory-Weiss).' },
+        { id: 'abm-25', question: 'Uterine apoplexy is associated with:', options: ['Incidental haemorrhage', 'Placental abruption', 'Multiple pregnancy', 'Placenta preavia'], correctAnswer: 'Placental abruption', explanation: 'Couvelaire uterus (uterine apoplexy) is a grave complication of severe abruption.' },
+        { id: 'abm-26', question: 'Positive fasting blood sugar and oral glucose tolerance test, as well as being symptomatic is diagnostic of:', options: ['Potential diabetes mellitus', 'Gestational diabetes mellitus', 'Clinical diabetes mellitus', 'Chemical diabetes mellitus'], correctAnswer: 'Clinical diabetes mellitus', explanation: 'Symptomatic hyperglycemia with positive confirmatory laboratory tests denotes clinical diabetes.' },
+        { id: 'abm-27', question: 'Neonate born of a diabetic mother, is fed within the first 15 minutes to prevent:', options: ['Hypocalcaemia', 'Hypoglycaemia', 'Hyponatraemia', 'Hypokalaemia'], correctAnswer: 'Hypoglycaemia', explanation: 'Infants of diabetic mothers experience hyperinsulinism, placing them at immediate risk for neonatal hypoglycemia.' },
+        { id: 'abm-28', question: 'Which of the following is associated with dizygotic twinning?', options: ['Conjoined twins', 'Polyhydramnous', 'Superfecundation', 'Foetus compressus'], correctAnswer: 'Superfecundation', explanation: 'Superfecundation (fertilization of two ova released in same cycle from separate acts of intercourse) occurs in dizygotic twinning.' },
+        { id: 'abm-29', question: 'The diagnostic factor of Polyhydramnios, based on percussion is:', options: ['Muffled fetal heart sounds', 'Presence of a dull sound', 'Excessive fetal movements', 'Presence of a fluid thrill'], correctAnswer: 'Presence of a fluid thrill', explanation: 'A fluid thrill (fluid wave test) across the maternal abdomen is indicative of excessive amniotic fluid volume.' },
+        { id: 'abm-30', question: 'Immediate management of a neonate whose mother is TB smear positive at birth is:', options: ['isoniazid 5 mg per kg daily for 3 months', 'isoniazid 5 mg per kg daily for 3 weeks', 'isoniazid 5 mg per kg daily for 6 weeks', 'isoniazid 5 mg per kg daily for 6 months'], correctAnswer: 'isoniazid 5 mg per kg daily for 6 months', explanation: 'Exposed neonates receive isoniazid prophylaxis for 6 months according to national guidelines.' },
+        { id: 'abm-31', question: 'Complete placenta praevia is also referred to as:', options: ['Type 4', 'Type 1', 'Type 2', 'Type 3'], correctAnswer: 'Type 4', explanation: 'Type 4 placenta praevia completely covers the internal cervical os.' },
+        { id: 'abm-32', question: 'Haematinics, dietary advice and close surveillance are management plans for:', options: ['Moderate anaemia', 'Mild anaemia', 'Severe anaemia', 'Anaemia prevention'], correctAnswer: 'Moderate anaemia', explanation: 'Moderate antenatal anaemia is managed with iron/folate supplementation, dietary counseling, and close surveillance.' },
+        { id: 'abm-33', question: 'A predisposing factor to cardiac disease in pregnancy includes:', options: ['Pulmonary oedema', 'Easy fatiguability', 'Basal crepitation', 'Severe anaemia'], correctAnswer: 'Severe anaemia', explanation: 'Severe chronic anaemia increases cardiac workload and precipitates heart failure.' },
+        { id: 'abm-34', question: 'The clinical feature that is suggestive of acute pyelonephritis in pregnancy is:', options: ['Kinking of the ureters', 'Vesico-ureteric reflux', 'Fishy smell in urine', 'Uncontrolled diabetes'], correctAnswer: 'Vesico-ureteric reflux', explanation: 'Vesico-ureteric reflux and progesterone-induced ureteral dilation predispose pregnant women to ascending pyelonephritis.' },
+        { id: 'abm-35', question: 'A pregnant woman with acute pyelonephritis is advised on a high fluid intake so as to:', options: ['Promote enough rest', 'Correct dehydration', 'Relief irritability', 'Increase urine output'], correctAnswer: 'Increase urine output', explanation: 'High fluid intake flushes the urinary tract and supports renal clearance during antibiotic therapy.' },
+        { id: 'abm-36', question: 'The priority management of uncomplicated malaria during the second trimester includes administration of:', options: ['Oral quinine', 'Parenteral quinine', 'Artemether lumefantrine', 'Sulphadoxine pyrimethamine'], correctAnswer: 'Artemether lumefantrine', explanation: 'ACTs are first-line for uncomplicated malaria in 2nd/3rd trimesters.' },
+        { id: 'abm-37', question: 'Sulphadoxine Pyrimethamine should be given to all pregnant women in malaria endemic zones.', options: ['True', 'False'], correctAnswer: 'True', explanation: 'Intermittent preventive treatment in pregnancy (IPTp-SP) is routinely administered.' },
+        { id: 'abm-38', question: 'The commonly used inhalational analgesia during labour is:', options: ['Entonox', 'Trilene', 'Oxygen', 'Nitrous oxide'], correctAnswer: 'Entonox', explanation: 'Entonox is standard intrapartum inhaled analgesia.' },
+        { id: 'abm-39', question: 'Which one of the following features is indicative of an abnormal labour pattern?', options: ['Presence of the retraction ring', 'Presence of the bandl\'s ring', 'Cervical canal short and thin', 'Vagina is warm and moist'], correctAnswer: 'Presence of the bandl\'s ring', explanation: 'Bandl\'s ring (pathological retraction ring) signifies impending uterine rupture during obstructed labor.' },
+        { id: 'abm-40', question: 'Post-partum haemorrhage is likely to lead to acute renal failure due to:', options: ['Sheehan\'s syndrome', 'Disseminated intravascular coagulation', 'Hypovolaemia leading to tubules necrosis', 'Asherman\'s syndrome'], correctAnswer: 'Hypovolaemia leading to tubules necrosis', explanation: 'Severe blood loss results in acute tubular necrosis.' },
+        { id: 'abm-41', question: 'Placental parasitation is associated with:', options: ['Malaria prenatally', 'Candidiasis prenatally', 'Tuberculosis prenatally', 'Multiple gestation'], correctAnswer: 'Malaria prenatally', explanation: 'Plasmodium falciparum sequesters in the placental intervascular space.' },
+        { id: 'abm-42', question: 'Complete placenta praemia is also referred to as:', options: ['Type 4', 'Type 1', 'Type 2', 'Type 3'], correctAnswer: 'Type 4', explanation: 'Type 4 is total placenta praevia.' },
+        { id: 'abm-43', question: 'Bruised and oedematous appearance of the uterus, associated with placental abruption is collectively referred to as:', options: ['Wernicke\'s encephalopathy', 'Uterine prolapse', 'Couvelaire uterus', 'Asherman\'s syndrome'], correctAnswer: 'Couvelaire uterus', explanation: 'Couvelaire uterus is myometrial apoplexy from blood extravasation.' },
+        { id: 'abm-44', question: 'The main feature of Hyperemesis gravidarum is:', options: ['Pallor or cyanosis of mucous membrane', 'Inability to eat or retain food all through', 'Weakness because of severe state of shock', 'Smaller fundal height compared to dates'], correctAnswer: 'Inability to eat or retain food all through', explanation: 'Inability to retain nutrition characterizes severe hyperemesis.' },
+        { id: 'abm-45', question: 'Which of the following can lead to placenta praemia?', options: ['Grandemultiparity', 'Preeclampsia', 'Placenta fenestrate', 'Placenta increta'], correctAnswer: 'Grandemultiparity', explanation: 'Grand multiparity and prior uterine scars increase placenta praevia risk.' },
+        { id: 'abm-46', question: 'Mallory-Weiss syndrome is a complication of:', options: ['Placenta praevia', 'Cardiac disease', 'Postpartum haemorrhage', 'Hyperemesis gravidarum'], correctAnswer: 'Hyperemesis gravidarum', explanation: 'Severe retching and vomiting cause gastroesophageal junction tears (Mallory-Weiss).' },
+        { id: 'abm-47', question: 'Bishop\'s score is based on:', options: ['Descent, presentation and cervical dilatation', 'Position, attitude and cervical length', 'Descent, cervical length and dilatation', 'Cervical dilatation, lie and effacement'], correctAnswer: 'Descent, cervical length and dilatation', explanation: 'Bishop score evaluates dilation, effacement, station, consistency, and position.' },
+        { id: 'abm-48', question: 'Total loss of polarity and fundal dominance leads to:', options: ['Precipitate labour', 'Colicky uterus', 'Spontaneous labour', 'Cervical dystocia'], correctAnswer: 'Precipitate labour', explanation: 'Loss of normal uterine gradient and polarity results in uncoordinated or precipitate labor.' },
+        { id: 'abm-49', question: 'Among the major predisposing factors of cardiac disease prenatally are:', options: ['Rheumatic heart disease and leukaemia', 'Ischaemic heart disease and dehydration', 'Uncontrolled hypertension and obesity', 'Smoking and peptic ulcer disease'], correctAnswer: 'Uncontrolled hypertension and obesity', explanation: 'Hypertension and obesity significantly elevate cardiovascular strain during pregnancy.' },
+        { id: 'abm-50', question: 'Which of the following is NOT a source of pain in labour', options: ['Uterine contractions', 'Socio-cultural norms', 'Cervical dilatation', 'Pelvic floor stretching'], correctAnswer: 'Socio-cultural norms', explanation: 'Socio-cultural norms shape pain perception and expression, but physiological labor pain arises from uterine ischemia, cervical dilation, and perineal distension.' },
+        { id: 'abm-51', question: 'Placenta praemia is also referred to as unavoidable haemorrhage because:', options: ['Bleeding results as the segment preparations for true labour', 'Bleeding results from pathological processes of the placenta', 'Bleeding always occurs after a gestation of 37 complete weeks', 'Of the high morbidity and mortality rate to the mother and neonate'], correctAnswer: 'Bleeding results as the segment preparations for true labour', explanation: 'Lower uterine segment formation inevitably disrupts placental attachment, causing unavoidable bleeding.' },
+        { id: 'abm-52', question: 'The commonest causative organism of pyelonephritis is:', options: ['Streptococcus faecalis', 'Proteus vulgaris', 'Staphylococcus pyogene', 'Escherichia coli'], correctAnswer: 'Escherichia coli', explanation: 'E. coli is the predominant pathogen.' },
+        { id: 'abm-53', question: 'Effects of pregnancy on malaria are:', options: ['Development of severe anaemia and severe jaundice', 'Blood smear is always positive and severe anaemia', 'Therapy limitation and few parasites in severe case', 'Loss of pregnancy and severe condition in few parasites'], correctAnswer: 'Development of severe anaemia and severe jaundice', explanation: 'Malaria in pregnancy frequently triggers severe malarial anemia and jaundice.' },
+        { id: 'abm-54', question: 'Haematinics, dietary advice and close surveillance are management plans for:', options: ['Moderate anaemia', 'Mild anaemia', 'Severe anaemia', 'Anaemia prevention'], correctAnswer: 'Moderate anaemia', explanation: 'Standard management for moderate antenatal anemia.' },
+        { id: 'abm-55', question: 'Effects of preeclampsia on the reproductive systems includes:', options: ['Development of infarcts and placental abruption', 'Lowered vaginal discharge PH and haemorrhage', 'Congestive cardiac failure and fetal hypoxia', 'Poor placental anchorage and severe infarction'], correctAnswer: 'Development of infarcts and placental abruption', explanation: 'Preeclampsia causes spiral arteriole vasospasm, placental infarction, and abruption.' },
+        { id: 'abm-56', question: 'The correct statement with regards to polyhydramnios is that', options: ['Acute polyhydramnios has a gradual onset as from 20 weeks', 'Multiple pregnancy is a cause especially in dizygotic twinning', 'Chronic polyhydramnios has a gradual onset from 30 weeks', 'On inspection, the abdomen is ovoid instead of being globular'], correctAnswer: 'Multiple pregnancy is a cause especially in dizygotic twinning', explanation: 'Twin-to-twin transfusion in monochorionic or dizygotic multiple gestation frequently causes polyhydramnios.' },
+        { id: 'abm-57', question: 'Which one of the following is a cause of oligohydramnios?', options: ['Absence of fetal urine production', 'Excessive fetal urine production', 'Blockage of the fetal gastro-intestinal tract', 'Dizygotic twinning thus twin to twin transfusion'], correctAnswer: 'Absence of fetal urine production', explanation: 'Fetal urine production is the primary source of amniotic fluid in later pregnancy; renal agenesis causes severe oligohydramnios.' },
+        { id: 'abm-58', question: 'T.B. in pregnancy predisposes a mother to premature labour due to', options: ['Poor maternal appetite', 'Severe anaemia experienced', 'Adverse reactions of anti-T.B. drugs', 'The fever experienced'], correctAnswer: 'Severe anaemia experienced', explanation: 'Chronic wasting and anemia from active TB increase preterm labor risk.' },
+        { id: 'abm-59', question: 'A client diagnosed with gestational diabetes at 24 weeks is scheduled for ANC care every', options: ['Weekly up to 28 weeks', 'Two weekly up to 28 weeks', 'Four weekly up to 28 weeks', 'Three weekly up to 28 weeks'], correctAnswer: 'Two weekly up to 28 weeks', explanation: 'Gestational diabetes requires bi-weekly monitoring up to 28 weeks, then weekly.' },
+        { id: 'abm-60', question: 'Which one of the following therapies is the MOST inco-operated in the management of clients with gestational diabetes?', options: ['Therapeutic diet alone', 'Long acting insulin', 'Oral hypoglycaemics', 'Short acting insulin'], correctAnswer: 'Therapeutic diet alone', explanation: 'Medical nutrition therapy (diet) alone successfully manages the majority of GDM cases.' },
+        { id: 'abm-61', question: 'Bipartite placenta and succuriate lobe are causes of', options: ['Placenta abruptio', 'Placental calcification', 'Placenta previa', 'Placental insuffucieny'], correctAnswer: 'Placenta previa', explanation: 'Abnormal placental lobes and insertions are associated with malplacentation.' },
+        { id: 'abm-62', question: 'Prenatally, malaria parasite hide at', options: ['Bone marrow', 'Placental bed', 'Fetal circulation', 'Uterine muscle'], correctAnswer: 'Placental bed', explanation: 'P. falciparum cytoadheres to syncytiotrophoblasts in the placental intervillous space.' },
+        { id: 'abm-63', question: 'Cardiac disease grade 1 is also known as;', options: ['Organic disease', 'Mitral stenosis', 'Ventricular failure', 'Vascular disease'], correctAnswer: 'Organic disease', explanation: 'Grade I cardiac disease has no limitation of physical activity.' },
+        { id: 'abm-64', question: 'Homeopathy, music therapy and hydrotherapy are among the;', options: ['Systemic methods of pain relief', 'Regional analgesia methods of pain relief', 'Inhalational analgesia method of pain relief', 'Non pharmacological method of pain relief'], correctAnswer: 'Non pharmacological method of pain relief', explanation: 'These are complementary non-pharmacological comfort measures.' },
+        { id: 'abm-65', question: 'The commonest causative agent for pyelonephritis is;', options: ['Proteus vulgaris', 'Escherichia coli', 'Neisseria gonococcal', 'Streptococcus faecalis'], correctAnswer: 'Escherichia coli', explanation: 'E. coli is the primary uropathogen.' },
+        { id: 'abm-66', question: 'During induction of labor with syntocinon, drops increase is stopped prematurely on', options: ['Achieving three moderate contractions', 'Realizing normal maternal observations', 'Achieving progressive cervical dilatation', 'Observing normal fetal related observations'], correctAnswer: 'Achieving progressive cervical dilatation', explanation: 'Oxytocin titration is maintained once active progressive labor is achieved.' },
+        { id: 'abm-67', question: 'The drug of choice in the management of eclampsia is', options: ['Phenobarbitone', 'Calcium gluconate', 'Magnesium sulphate', 'Sodium bicarbonate'], correctAnswer: 'Magnesium sulphate', explanation: 'Magnesium sulfate is standard therapy.' },
+        { id: 'abm-68', question: 'The commonest major cause of primary postpartum haemorrhage is', options: ['Trauma of the genital tract', 'Blood coagulation disorder', 'Prolonged stage', 'Atony of the uterus'], correctAnswer: 'Atony of the uterus', explanation: 'Uterine atony causes ~80% of primary PPH.' },
+        { id: 'abm-69', question: 'Excessive bleeding from the genital tract after the first 24 hours, but within puerperium period is referred to as', options: ['Primary postpartum haemorrhage', 'Tertiary postpartum haemorrhage', 'Secondary postpartum haemorrhage', 'Incidental postpartum haemorrhage'], correctAnswer: 'Secondary postpartum haemorrhage', explanation: 'Secondary PPH occurs between 24h and 12 weeks postpartum.' },
+        { id: 'abm-70', question: 'Surgical induction of labour refers to use of', options: ['Cytotec and Mechanical cervical dilatation', 'Sweeping of membranes and amniotomy', 'Mechanical cervical dilatation and buscopan', 'Artificial rupture of membranes and syntocinon'], correctAnswer: 'Artificial rupture of membranes and syntocinon', explanation: 'Surgical induction involves amniotomy (ARM) combined with oxytocin infusion.' },
+        { id: 'abm-71', question: 'Perception and reaction to labour pain is highly influenced by', options: ['Labour preparedness and fatigue', 'Culture and age of the woman', 'Culture and level of education', 'Number of deliveries and anxiety.'], correctAnswer: 'Culture and level of education', explanation: 'Sociocultural background and education significantly influence pain interpretation.' },
+        { id: 'abm-72', question: 'Uterine apoplexy is associated with', options: ['Postpartum haemorrhage', 'Hyperemesis gravidarum', 'Precipitate labour', 'Placenta abruption'], correctAnswer: 'Placenta abruption', explanation: 'Couvelaire uterus is linked to severe abruption.' },
+        { id: 'abm-73', question: 'Based on vaginal examination findings, indicators of abnormal labour are', options: ['Bandl\'s ring and oedematous vulva', 'Oedematous cervix and fetal hypoxia', 'Hot, dry vagina and arrest in descend', 'Maternal distress and severe moulding'], correctAnswer: 'Hot, dry vagina and arrest in descend', explanation: 'Hot dry vagina and labor arrest indicate obstructed labor.' },
+        { id: 'abm-74', question: 'Inability to eat or retain feeds throughout the day prenatally is highly associated with', options: ['Weight gain control', 'Hyperemesis gravidarum', 'Morning sickness', 'presence of preeclampsia'], correctAnswer: 'Hyperemesis gravidarum', explanation: 'Inability to retain nutrition characterizes hyperemesis.' },
+        { id: 'abm-75', question: 'In eclampsia, violent contraction and relaxation of the whole body occurs in', options: ['Clonic stage', 'Coma stage', 'Premonitory stage', 'Tonic stage'], correctAnswer: 'Clonic stage', explanation: 'The clonic stage features rhythmic muscular contractions and relaxations.' },
+        { id: 'abm-76', question: 'Clinical diagnosis of polyhydramnios is based on excessive amount of amniotic fluid exceeding', options: ['1500 mls', '2500 mls', '1900 mls', '3000 mls'], correctAnswer: '2500 mls', explanation: 'Polyhydramnios is diagnosed when amniotic fluid volume exceeds 2,000 to 2,500 mL (or AFI > 24-25 cm).' },
+        { id: 'abm-77', question: 'Which one of the following drugs when used by a pregnant woman is likely to lead to oligohydramnios?', options: ['Diazepam', 'Captopril', 'Ampicillin', 'Pethidine'], correctAnswer: 'Captopril', explanation: 'ACE inhibitors (like Captopril) cause fetal renal hypoperfusion and oligohydramnios / renal failure.' },
+        { id: 'abm-78', question: 'A characteristic of monozygotic twins include', options: ['Always of the same sex', 'Share a similar fingerprint pattern', 'Have different blood groups', 'Superfetation is a common finding'], correctAnswer: 'Always of the same sex', explanation: 'Monozygotic twins originate from a single fertilized ovum and are genetically identical, thus always of the same sex.' }
       ]
     }
   ];
