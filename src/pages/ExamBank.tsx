@@ -1387,6 +1387,8 @@ export default function ExamBank() {
     fetchAllExamsAndQuestions();
     fetchUserFavorites();
     fetchUserPurchases();
+    // Auto-sync any local custom items to cloud in background
+    syncAllExamsAndQuestionsToCloud().catch(err => console.warn('Background sync note:', err));
   }, []);
 
   const toggleCategory = (cat: string) => {
@@ -1618,8 +1620,8 @@ export default function ExamBank() {
       setMpesaRef('');
       setSelectedBundle(null);
       await fetchUserPurchases();
-      alert(`Success! ${selectedBundle.title} has been unlocked and added to your "My Courses" tab.`);
-      navigate('/dashboard/courses');
+      alert(`Success! ${selectedBundle.title} has been unlocked and added to your Exam Bank.`);
+      navigate('/dashboard/exams');
     } catch (error) {
       console.error('Error submitting payment:', error);
       alert('Error submitting payment.');

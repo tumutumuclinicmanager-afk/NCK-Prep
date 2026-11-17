@@ -134,8 +134,9 @@ export default function Pricing() {
   ];
 
   const formatPrice = (plan: PlanItem) => {
-    if (plan.kesPrice === 0) return 'KSh 0';
-    return `KSh ${plan.kesPrice.toLocaleString()}`;
+    const p = plan?.kesPrice ?? 0;
+    if (p === 0) return 'KSh 0';
+    return `KSh ${p.toLocaleString()}`;
   };
 
   const handleSelectPlan = (plan: PlanItem) => {
@@ -177,11 +178,11 @@ export default function Pricing() {
         createdAt: new Date().toISOString()
       });
 
-      setPaymentSuccessMessage(`Payment of ${formatPrice(selectedPlan.usdPrice)} via Stripe Credit Card was successful! Full ${selectedPlan.name} access has been granted in your My Courses tab.`);
+      setPaymentSuccessMessage(`Payment via Stripe Credit Card was successful! Full ${selectedPlan.name} access has been granted.`);
       setTimeout(() => {
         setShowPaymentModal(false);
         setIsSubmitting(false);
-        navigate('/dashboard/courses');
+        navigate('/dashboard/exams');
       }, 2500);
     } catch (error) {
       console.error('Stripe payment error:', error);
@@ -245,7 +246,7 @@ export default function Pricing() {
       setTimeout(() => {
         setShowPaymentModal(false);
         setIsSubmitting(false);
-        navigate('/dashboard/courses');
+        navigate('/dashboard/exams');
       }, 2500);
     } catch (error: any) {
       console.error('Payplus M-Pesa payment error:', error);

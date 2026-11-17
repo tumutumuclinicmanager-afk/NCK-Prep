@@ -5,10 +5,11 @@ import {
   Save, X, HelpCircle, ArrowRight, Zap, Award 
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { QuestionData } from '@/types';
 import { ExamEditorModal } from '@/components/admin/ExamEditorModal';
+import { syncAllExamsAndQuestionsToCloud } from '@/lib/cloudSync';
 
 export interface ExamDoc {
   id?: string;
@@ -377,17 +378,11 @@ export default function ExamPublisher({ onExamUpdated }: { onExamUpdated?: () =>
     setIsSaving(true);
     try {
       const sanitizedPayload = JSON.parse(JSON.stringify(payload));
-      sanitizedPayload.id = editingExamId || `custom-exam-${Date.now()}`;
+      const docId = editingExamId || `custom-exam-${Date.now()}`;
+      sanitizedPayload.id = docId;
 
-      try {
-        if (editingExamId) {
-          await updateDoc(doc(db, 'exams', editingExamId), sanitizedPayload);
-        } else {
-          await addDoc(collection(db, 'exams'), sanitizedPayload);
-        }
-      } catch (firestoreErr) {
-        console.warn("Firestore write bypassed due to permissions, using localStorage fallback:", firestoreErr);
-      }
+      await setDoc(doc(db, 'exams', docId), sanitizedPayload, { merge: true });
+      await syncAllExamsAndQuestionsToCloud();
 
       // Save to localStorage backup
       const existingExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');

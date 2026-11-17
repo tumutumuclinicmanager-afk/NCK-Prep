@@ -53,7 +53,7 @@ const DEFAULT_NOTIFICATIONS: Omit<NotificationItem, 'id'>[] = [
     timestamp: '2h ago',
     read: false,
     type: 'payment',
-    link: '/dashboard/courses',
+    link: '/dashboard/exams',
     targetRole: 'student'
   },
   {
@@ -71,7 +71,7 @@ const DEFAULT_NOTIFICATIONS: Omit<NotificationItem, 'id'>[] = [
     timestamp: '1d ago',
     read: true,
     type: 'system',
-    link: '/dashboard/courses',
+    link: '/dashboard/exams',
     targetRole: 'all'
   }
 ];
