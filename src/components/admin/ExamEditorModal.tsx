@@ -35,12 +35,12 @@ export interface ExamEditorData {
   numericPrice?: number;
   questionCount?: number;
   isPremium?: boolean;
-  requiredPlan?: 'free' | 'basic' | 'gold' | 'platinum';
+  requiredPlan?: 'free' | 'daily' | 'weekly' | 'pass';
   questionLimits?: {
     free: number;
-    basic: number;
-    gold: number;
-    platinum: number;
+    daily: number;
+    weekly: number;
+    pass: number;
   };
   isPublished?: boolean;
   features?: string[];
@@ -94,14 +94,14 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState<'Beginner' | 'Medium' | 'Advanced'>('Medium');
   const [durationMinutes, setDurationMinutes] = useState(60);
-  const [requiredPlan, setRequiredPlan] = useState<'free' | 'basic' | 'gold' | 'platinum'>('free');
+  const [requiredPlan, setRequiredPlan] = useState<'free' | 'daily' | 'weekly' | 'pass'>('free');
   const [isPublished, setIsPublished] = useState(true);
   const [features, setFeatures] = useState<string[]>(['Lecturer Authored', 'Verified Rationales', 'Timed Simulation']);
   const [newFeatureText, setNewFeatureText] = useState('');
   const [freeLimit, setFreeLimit] = useState(5);
-  const [basicLimit, setBasicLimit] = useState(25);
-  const [goldLimit, setGoldLimit] = useState(0); // 0 = unlimited
-  const [platinumLimit, setPlatinumLimit] = useState(0);
+  const [dailyLimit, setDailyLimit] = useState(25);
+  const [weeklyLimit, setWeeklyLimit] = useState(50);
+  const [passLimit, setPassLimit] = useState(0); // 0 = unlimited
 
   // Questions List
   const [questions, setQuestions] = useState<EditableQuestion[]>([]);
@@ -155,9 +155,9 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
     setFeatures(exam.features && exam.features.length > 0 ? [...exam.features] : ['Lecturer Authored', 'Verified Rationales', 'Timed Simulation']);
     
     setFreeLimit(exam.questionLimits?.free ?? 5);
-    setBasicLimit(exam.questionLimits?.basic ?? 25);
-    setGoldLimit(exam.questionLimits?.gold ?? 0);
-    setPlatinumLimit(exam.questionLimits?.platinum ?? 0);
+    setDailyLimit((exam.questionLimits as any)?.daily ?? (exam.questionLimits as any)?.basic ?? 25);
+    setWeeklyLimit((exam.questionLimits as any)?.weekly ?? (exam.questionLimits as any)?.gold ?? 50);
+    setPassLimit((exam.questionLimits as any)?.pass ?? (exam.questionLimits as any)?.platinum ?? 0);
 
     // Normalize raw questions
     if (exam.questions && Array.isArray(exam.questions)) {
@@ -556,9 +556,9 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
       requiredPlan,
       questionLimits: {
         free: Number(freeLimit) || 5,
-        basic: Number(basicLimit) || 25,
-        gold: Number(goldLimit) || 0,
-        platinum: Number(platinumLimit) || 0,
+        daily: Number(dailyLimit) || 25,
+        weekly: Number(weeklyLimit) || 50,
+        pass: Number(passLimit) || 0,
       },
       isPublished,
       features: features.length > 0 ? features : ['Lecturer Authored', 'Verified Rationales', 'Timed Simulation'],
@@ -928,9 +928,9 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
                       { id: 'free', label: 'Free Access', sub: 'All users' },
-                      { id: 'basic', label: 'Silver / Basic', sub: 'Subscribers' },
-                      { id: 'gold', label: 'Gold / Sure Pass', sub: 'Premium' },
-                      { id: 'platinum', label: 'Platinum / Master', sub: 'Elite' },
+                      { id: 'daily', label: 'Exam Boost Daily', sub: '1 Day Pass' },
+                      { id: 'weekly', label: 'Exam Boost Weekly', sub: '7 Day Pass' },
+                      { id: 'pass', label: 'Complete Pass', sub: 'Full Access' },
                     ].map(p => (
                       <button
                         key={p.id}
@@ -963,32 +963,32 @@ export function ExamEditorModal({ isOpen, onClose, exam, onSave }: ExamEditorMod
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Basic Plan Limit</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Daily Limit</span>
                       <input
                         type="number"
                         min={0}
-                        value={basicLimit}
-                        onChange={(e) => setBasicLimit(parseInt(e.target.value) || 0)}
+                        value={dailyLimit}
+                        onChange={(e) => setDailyLimit(parseInt(e.target.value) || 0)}
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Gold Plan Limit</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Weekly Limit</span>
                       <input
                         type="number"
                         min={0}
-                        value={goldLimit}
-                        onChange={(e) => setGoldLimit(parseInt(e.target.value) || 0)}
+                        value={weeklyLimit}
+                        onChange={(e) => setWeeklyLimit(parseInt(e.target.value) || 0)}
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Platinum Limit</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Pass Limit</span>
                       <input
                         type="number"
                         min={0}
-                        value={platinumLimit}
-                        onChange={(e) => setPlatinumLimit(parseInt(e.target.value) || 0)}
+                        value={passLimit}
+                        onChange={(e) => setPassLimit(parseInt(e.target.value) || 0)}
                         className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
                       />
                     </div>

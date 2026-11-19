@@ -1937,14 +1937,17 @@ export default function ExamBank() {
 
   const getPlanBadge = (plan?: string) => {
     switch (plan) {
+      case 'pass':
       case 'platinum':
-        return <span className="px-2.5 py-0.5 bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><Crown className="w-3 h-3 text-purple-600" /> Platinum / Master Tier</span>;
+        return <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><Crown className="w-3 h-3 text-emerald-600" /> Complete Pass (Full Access)</span>;
+      case 'weekly':
       case 'gold':
-        return <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><Crown className="w-3 h-3 text-amber-600" /> Gold / Sure Pass Tier</span>;
+        return <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><Crown className="w-3 h-3 text-amber-600" /> Exam Boost Weekly</span>;
+      case 'daily':
       case 'basic':
-        return <span className="px-2.5 py-0.5 bg-slate-200 text-slate-900 border border-slate-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-slate-600" /> Silver / Basic Tier</span>;
+        return <span className="px-2.5 py-0.5 bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-blue-600" /> Exam Boost Daily</span>;
       default:
-        return <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><CheckCircle className="w-3 h-3 text-emerald-600" /> Free Public Access</span>;
+        return <span className="px-2.5 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 text-[10px] font-extrabold rounded-full flex items-center gap-1"><CheckCircle className="w-3 h-3 text-slate-600" /> Free Public Access</span>;
     }
   };
 
