@@ -687,6 +687,73 @@ const defaultExamBundles: ExamItem[] = [
         explanation: 'Vaginal birth after previous cesarean delivery is clinically termed a trial of scar (or TOLAC).'
       }
     ]
+  },
+  {
+    id: 'nck-exam1-part2',
+    title: 'NCK Exam 1 - Study Guide (Part 2)',
+    category: 'NCK Registered Nurse (RN) FQE',
+    domain: 'Medical-Surgical & Obstetric Nursing',
+    price: 'Free Access',
+    numericPrice: 0,
+    questionCount: 27,
+    durationMinutes: 45,
+    difficulty: 'Advanced',
+    isPremium: false,
+    features: ['27 NCK Licensure Questions (Part 2)', 'Comprehensive Clinical Rationales', 'Immediate Performance Analytics'],
+    icon: Award,
+    color: 'text-blue-700',
+    bg: 'bg-blue-100',
+    requiredPlan: 'free',
+    questionLimits: { free: 27, basic: 27, gold: 0, platinum: 0 },
+    questions: [
+      { question: 'Neurovascular assessment of the lower limb post-cast application involves observation of,', options: ['Color, sensation and pulses', 'Level of consciousness, limb symmetry and muscular strength', 'Capillary refill, sensation and muscle power', 'Color, warmth and muscle power'], correctAnswer: 'Color, sensation and pulses', explanation: 'The classic 5 Ps of neurovascular assessment are Pain, Pallor, Pulselessness, Paraesthesia and Paralysis.' },
+      { question: 'The risk for macrovascular complications in diabetes mellitus may be reduced by,', options: ['Lowering BP, avoiding nephrotoxic substances & reducing strenuous exercises.', 'Weight reduction, reducing fat/triglyceride levels, quitting smoking.', 'Foot care, early diagnosis of retinal detachment & daily U/Es checkups.', 'High fibre diet, low fat diet & prompt treatment of systemic infections'], correctAnswer: 'Weight reduction, reducing fat/triglyceride levels, quitting smoking.', explanation: 'Macrovascular disease is reduced by controlling weight, lipids and stopping smoking.' },
+      { question: 'The priority indicator of increasing intracranial pressure is,', options: ['Unequal pupil size', 'Decreasing systolic pressure', 'Tachycardia', 'Decreasing body temperature'], correctAnswer: 'Unequal pupil size', explanation: 'A change in pupil size or reactivity is an early and critical sign of rising ICP.' }
+    ]
+  },
+  {
+    id: 'nck-exam1-part3',
+    title: 'NCK Exam 1 - Study Guide (Part 3)',
+    category: 'NCK Midwifery & Obstetric Nursing',
+    domain: 'Midwifery, Maternal-Newborn & Medical-Surgical',
+    price: 'Free Access',
+    numericPrice: 0,
+    questionCount: 29,
+    durationMinutes: 45,
+    difficulty: 'Advanced',
+    isPremium: false,
+    features: ['29 NCK Licensure Questions (Part 3)', 'Obstetric & Midwifery Rationales', 'Performance Tracking'],
+    icon: BookOpen,
+    color: 'text-purple-700',
+    bg: 'bg-purple-100',
+    requiredPlan: 'free',
+    questionLimits: { free: 29, basic: 29, gold: 0, platinum: 0 },
+    questions: [
+      { question: 'Which is the most relevant knowledge about oxygen administration to a client with COPD?', options: ['Oxygen at 1–2 L/min is given to maintain the hypoxic stimulus for breathing.', 'Hypoxia stimulates the central chemoreceptors in the medulla that makes the client breathe.', 'Oxygen is administered best using non-rebreathing mask.', 'Blood gases are monitored using a pulse oximeter.'], correctAnswer: 'Oxygen at 1–2 L/min is given to maintain the hypoxic stimulus for breathing.', explanation: 'In COPD patients who retain CO2, low-flow oxygen is used so that the hypoxic drive is not abolished.' },
+      { question: 'What is the reason for the nurse instructing the client to rotate the injection sites for insulin?', options: ['Lipodystrophy can result and extremity painful', 'Poor rotation technique can cause superficial hemorrhaging', 'Lipodystrophic areas can result, causing erratic insulin absorption rates from these areas', 'Injection sites can never be reused'], correctAnswer: 'Lipodystrophic areas can result, causing erratic insulin absorption rates from these areas', explanation: 'Repeated injections into the same site cause lipohypertrophy leading to unpredictable absorption.' }
+    ]
+  },
+  {
+    id: 'nck-exam1-part5',
+    title: 'NCK Exam 1 - Study Guide (Part 5)',
+    category: 'NCK Registered Nurse (RN) FQE',
+    domain: 'Physiology, Med-Surg & Clinical Nursing',
+    price: 'Free Access',
+    numericPrice: 0,
+    questionCount: 27,
+    durationMinutes: 45,
+    difficulty: 'Advanced',
+    isPremium: false,
+    features: ['27 NCK Licensure Questions (Part 5)', 'Physiology & Clinical Rationales', 'Instant Sync'],
+    icon: ShieldCheck,
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-100',
+    requiredPlan: 'free',
+    questionLimits: { free: 27, basic: 27, gold: 0, platinum: 0 },
+    questions: [
+      { question: 'The Na+ K+ ATPase pump:', options: ['Extrudes potassium ions from the cell and takes two sodium ions into the cell', 'Extrudes three sodium ions from the cell and takes two potassium ions into the cell', 'Has a coupling ratio of 2:1', 'Is found mainly in the intravascular fluid compartment'], correctAnswer: 'Extrudes three sodium ions from the cell and takes two potassium ions into the cell', explanation: 'The Na+/K+-ATPase pump actively extrudes 3 Na+ out and imports 2 K+ in (3:2 ratio).' },
+      { question: 'Conductive hearing loss can be caused by:', options: ['Ototoxic medication, otitis externa', 'Presbycusis, ototoxic medication', 'Meniere’s disease, otosclerosis', 'Otosclerosis, tympanic membrane retraction'], correctAnswer: 'Otosclerosis, tympanic membrane retraction', explanation: 'Conductive hearing loss results from outer/middle ear problems (e.g. otosclerosis).' }
+    ]
   }
 ];
 
