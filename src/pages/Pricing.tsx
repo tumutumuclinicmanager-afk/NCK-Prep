@@ -455,7 +455,7 @@ export default function Pricing() {
                 <Smartphone className="w-5 h-5" />
                 <span className="font-black text-sm">Payplus M-Pesa Express Checkout</span>
               </div>
-              <span className="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-bold">Ksh 3,000</span>
+              <span className="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-bold">Ksh {selectedPlan.kesPrice.toLocaleString()}</span>
             </div>
 
             {/* Success Message Banner */}
@@ -476,7 +476,7 @@ export default function Pricing() {
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs">
                   <span className="text-emerald-900 font-medium">Total Charge (Complete Access):</span>
                   <span className="text-emerald-950 font-black text-sm">
-                    Ksh 3,000
+                    Ksh {selectedPlan.kesPrice.toLocaleString()}
                   </span>
                 </div>
 
@@ -516,7 +516,7 @@ export default function Pricing() {
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-emerald-600"
                     />
                     <p className="text-[11px] text-slate-500">
-                      An M-Pesa prompt will appear on your mobile phone requesting your PIN to authorize payment of <strong>Ksh {(selectedPlan.usdPrice * KES_RATE).toLocaleString()}</strong>.
+                      An M-Pesa prompt will appear on your mobile phone requesting your PIN to authorize payment of <strong>Ksh {selectedPlan.kesPrice.toLocaleString()}</strong>.
                     </p>
                   </div>
                 ) : (
@@ -525,7 +525,7 @@ export default function Pricing() {
                       <p>1. Go to M-Pesa Menu -&gt; Lipa na M-Pesa</p>
                       <p>2. Select <strong>Buy Goods and Services</strong></p>
                       <p>3. Till Number: <strong className="text-emerald-700 font-extrabold">1661665</strong> (NCKPrep Qbank)</p>
-                      <p>4. Amount: <strong className="text-slate-900 font-extrabold">Ksh {(selectedPlan.usdPrice * KES_RATE).toLocaleString()}</strong></p>
+                      <p>4. Amount: <strong className="text-slate-900 font-extrabold">Ksh {selectedPlan.kesPrice.toLocaleString()}</strong></p>
                     </div>
 
                     <div className="space-y-1">

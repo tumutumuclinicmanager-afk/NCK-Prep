@@ -80,7 +80,7 @@ app.use(
       name: "General API Traffic",
       category: "Core API Gateway",
       scope: "/api/*",
-      max: 100,
+      max: 2000,
       windowMinutes: 15,
       enabled: true,
       description: "Standard REST API endpoints across user dashboards and listings."
@@ -90,7 +90,7 @@ app.use(
       name: "AI Study Mentor & Quiz Generation",
       category: "AI Generation",
       scope: "/api/study-assistant, /api/generate-quiz",
-      max: 25,
+      max: 100,
       windowMinutes: 10,
       enabled: true,
       description: "Limits expensive LLM tokens and automated question generation per IP window."
@@ -100,7 +100,7 @@ app.use(
       name: "Exam PDF Extraction & OCR",
       category: "File Uploads",
       scope: "/api/upload-exam",
-      max: 10,
+      max: 200,
       windowMinutes: 15,
       enabled: true,
       description: "Limits server-intensive PDF document parsing and OCR extraction."
