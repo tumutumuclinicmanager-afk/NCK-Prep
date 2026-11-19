@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, RefreshCw, Edit3, Database, Layers, ShieldCheck, Clock, Clipboard, Trash2, Check, Sparkles, Cpu, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { collection, addDoc, getDocs, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, doc, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { parseRateLimitResponse } from '@/lib/rateLimit';
 import { extractExamQuestionsUniversal, parseExamQuestionsFromText, isRawPdfBytecode, ExtractedExamQuestion } from '@/lib/pdfExtractor';
@@ -189,13 +189,19 @@ export default function UploadExams() {
         questionsListDocs.push(questionDoc);
       }
 
-      // Direct strict sync write to Firestore database
-      const docRef = await addDoc(collection(db, 'exams'), examDoc);
-      examDoc.id = docRef.id;
+      // Direct lightning-fast batched write to Firestore database
+      const batch = writeBatch(db);
+      const examRef = doc(collection(db, 'exams'));
+      examDoc.id = examRef.id;
+      batch.set(examRef, examDoc);
 
       for (const qDoc of questionsListDocs) {
-        await addDoc(collection(db, 'questions'), qDoc);
+        const qRef = doc(collection(db, 'questions'));
+        qDoc.id = qRef.id;
+        qDoc.examId = examRef.id;
+        batch.set(qRef, qDoc);
       }
+      await batch.commit();
 
       // Always save to localStorage backup as well so it's instantly available
       const existingExams = JSON.parse(localStorage.getItem('nckprep_custom_exams') || '[]');

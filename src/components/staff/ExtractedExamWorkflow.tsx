@@ -7,7 +7,7 @@ import {
   CheckCircle2, X
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { collection, addDoc, getDocs, query, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, updateDoc, doc, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { extractExamQuestionsUniversal, parseExamQuestionsFromText, isRawPdfBytecode, ExtractedExamQuestion } from '@/lib/pdfExtractor';
 import { useNavigate } from 'react-router-dom';
@@ -475,13 +475,19 @@ export default function ExtractedExamWorkflow({
       }
 
       try {
-        const docRef = await addDoc(collection(db, 'exams'), examDocPayload);
-        examId = docRef.id;
-        examDocPayload.id = docRef.id;
+        const batch = writeBatch(db);
+        const examRef = doc(collection(db, 'exams'));
+        examId = examRef.id;
+        examDocPayload.id = examRef.id;
+        batch.set(examRef, examDocPayload);
+
         for (const qDoc of questionsListDocs) {
-          qDoc.examId = docRef.id;
-          await addDoc(collection(db, 'questions'), qDoc);
+          const qRef = doc(collection(db, 'questions'));
+          qDoc.id = qRef.id;
+          qDoc.examId = examRef.id;
+          batch.set(qRef, qDoc);
         }
+        await batch.commit();
       } catch (firestoreErr) {
         console.warn("Firestore write bypassed due to permissions, using localStorage fallback:", firestoreErr);
       }
