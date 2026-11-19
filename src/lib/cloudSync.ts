@@ -1,4 +1,4 @@
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCount: number; syncedQuestionsCount: number }> {
@@ -663,13 +663,27 @@ export async function syncAllExamsAndQuestionsToCloud(): Promise<{ syncedExamsCo
     });
   }
 
-  // Write all unique questions
-  for (const [qId, qData] of uniqueQuestionsMap.entries()) {
-    syncedQuestionsCount++;
+  // Write all unique questions using high-speed batched writes (chunks of 450)
+  const entries = Array.from(uniqueQuestionsMap.entries());
+  for (let i = 0; i < entries.length; i += 450) {
+    const chunk = entries.slice(i, i + 450);
+    const batch = writeBatch(db);
+    for (const [qId, qData] of chunk) {
+      syncedQuestionsCount++;
+      const qRef = doc(db, 'questions', qId);
+      batch.set(qRef, qData, { merge: true });
+    }
     try {
-      await setDoc(doc(db, 'questions', qId), qData, { merge: true });
-    } catch (e) {
-      console.warn('Firestore question sync warning:', e);
+      await batch.commit();
+    } catch (batchErr) {
+      console.warn('Firestore question batch sync warning:', batchErr);
+      for (const [qId, qData] of chunk) {
+        try {
+          await setDoc(doc(db, 'questions', qId), qData, { merge: true });
+        } catch (e) {
+          console.warn('Fallback setDoc error:', e);
+        }
+      }
     }
   }
 
